@@ -35,19 +35,19 @@ const createMockPlayer = (): Player => ({
     stableName: 'Demo Stables'
   },
   assets: {
-    turfBalance: 25000,
-    solBalance: 5.5,
+    turfBalance: 50000,        // Increased starting balance for better gameplay
+    solBalance: 10.0,          // More SOL for transactions
     horses: [],
     facilities: [
       {
         id: '1',
         type: 'Stable',
-        level: 2,
-        capacity: 8,
-        upgradeCost: 10000,
+        level: 3,                // Higher starting level
+        capacity: 12,            // More horse capacity
+        upgradeCost: 15000,
         benefits: {
-          trainingEfficiency: 1.2,
-          recoverySpeed: 1.1,
+          trainingEfficiency: 1.3,  // Better training efficiency
+          recoverySpeed: 1.2,       // Faster recovery
           breedingSuccessRate: 1.0
         }
       },

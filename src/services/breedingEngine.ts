@@ -25,13 +25,21 @@ export interface CompatibilityAnalysis {
 }
 
 export class BreedingEngine {
-  private readonly mutationRate = 0.15; // 15% chance of mutations
+  private readonly mutationRate = 0.18; // Increased to 18% for more genetic variety
   private readonly rarityThresholds = {
-    Common: 50,
-    Uncommon: 70,
-    Rare: 85,
-    Epic: 95,
-    Legendary: 99
+    Common: 45,      // Lowered threshold for more accessible breeding
+    Uncommon: 65,    // Adjusted for better progression
+    Rare: 80,        // More achievable rare horses
+    Epic: 92,        // Slightly easier epic horses
+    Legendary: 98    // Maintained exclusivity
+  };
+
+  // Enhanced breeding bonuses
+  private readonly breedingBonuses = {
+    sameBloodline: 1.15,     // 15% bonus for same bloodline
+    complementaryStats: 1.10, // 10% bonus for complementary stats
+    rarityBonus: 1.05,       // 5% bonus per rarity level difference
+    experienceBonus: 1.02    // 2% bonus per 10 races combined
   };
 
   public analyzeCompatibility(mare: HorseNFT, stallion: HorseNFT): CompatibilityAnalysis {

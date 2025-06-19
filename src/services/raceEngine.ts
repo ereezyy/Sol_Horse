@@ -38,7 +38,17 @@ type TrackCondition = 'Fast' | 'Good' | 'Soft' | 'Heavy';
 
 export class RaceEngine {
   private raceState: RaceState;
-  private updateInterval: number = 50; // 50ms updates = 20fps
+  private updateInterval: number = 33; // 33ms updates = 30fps for smoother animation
+  
+  // Enhanced race physics
+  private readonly racePhysics = {
+    maxAcceleration: 6.0,      // Increased acceleration for more dynamic races
+    maxDeceleration: 8.0,      // Faster deceleration when tired
+    energyRecoveryRate: 0.5,   // Slight energy recovery during strategic pacing
+    temperamentVariance: 0.15, // 15% variance based on temperament
+    intelligenceBonus: 0.02,   // 2% strategy bonus per intelligence point over 50
+    agilityCornerBonus: 0.01   // 1% speed bonus in turns per agility point over 50
+  };
   private callbacks: {
     onUpdate: (state: RaceState) => void;
     onFinish: (results: RaceResult[]) => void;

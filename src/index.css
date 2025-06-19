@@ -1,3 +1,144 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Enhanced base styles for better mobile experience */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900;
+    @apply text-white antialiased;
+    @apply min-h-screen;
+    /* Prevent zoom on iOS */
+    -webkit-text-size-adjust: 100%;
+    /* Better touch scrolling */
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Improved focus styles for accessibility */
+  *:focus {
+    @apply outline-none ring-2 ring-purple-500 ring-offset-2 ring-offset-gray-900;
+  }
+  
+  /* Better button touch targets for mobile */
+  button, [role="button"] {
+    @apply min-h-[44px] min-w-[44px];
+    touch-action: manipulation;
+  }
+}
+
+/* Custom component styles */
+@layer components {
+  /* Loading spinner */
+  .spinner {
+    @apply animate-spin rounded-full border-4 border-gray-300 border-t-purple-600;
+  }
+  
+  /* Card hover effects */
+  .card-hover {
+    @apply transition-all duration-300 hover:scale-105 hover:shadow-2xl;
+  }
+  
+  /* Gradient text */
+  .gradient-text {
+    @apply bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent;
+  }
+  
+  /* Mobile-first responsive containers */
+  .container-responsive {
+    @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+  
+  /* Better mobile navigation */
+  .nav-mobile {
+    @apply fixed bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur-sm border-t border-gray-700;
+    @apply flex justify-around items-center py-2 z-50;
+  }
+  
+  /* Improved form inputs for mobile */
+  .input-mobile {
+    @apply w-full px-4 py-3 text-base bg-gray-800 border border-gray-600 rounded-lg;
+    @apply focus:border-purple-500 focus:ring-1 focus:ring-purple-500;
+    @apply placeholder-gray-400;
+  }
+  
+  /* Better modal styles for mobile */
+  .modal-mobile {
+    @apply fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4;
+    @apply bg-black/50 backdrop-blur-sm;
+  }
+  
+  .modal-content {
+    @apply w-full max-w-lg bg-gray-800 rounded-t-2xl sm:rounded-2xl;
+    @apply max-h-[90vh] overflow-y-auto;
+  }
+}
+
+/* Utility classes for enhanced UX */
+@layer utilities {
+  /* Safe area padding for mobile devices */
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  /* Touch-friendly spacing */
+  .touch-spacing {
+    @apply p-4 sm:p-6 lg:p-8;
+  }
+  
+  /* Responsive text sizes */
+  .text-responsive-xs {
+    @apply text-xs sm:text-sm;
+  }
+  
+  .text-responsive-sm {
+    @apply text-sm sm:text-base;
+  }
+  
+  .text-responsive-base {
+    @apply text-base sm:text-lg;
+  }
+  
+  .text-responsive-lg {
+    @apply text-lg sm:text-xl lg:text-2xl;
+  }
+  
+  .text-responsive-xl {
+    @apply text-xl sm:text-2xl lg:text-3xl;
+  }
+  
+  /* Loading states */
+  .loading-skeleton {
+    @apply animate-pulse bg-gray-700 rounded;
+  }
+  
+  /* Better scrollbars */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(107 114 128) rgb(31 41 55);
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: rgb(31 41 55);
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: rgb(107 114 128);
+    border-radius: 3px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: rgb(156 163 175);
+  }
+}

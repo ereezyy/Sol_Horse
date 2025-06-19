@@ -63,19 +63,21 @@ const WalletConnection: React.FC = () => {
           stableName: `${walletType.charAt(0).toUpperCase() + walletType.slice(1)} Stables`
         },
         assets: {
-          turfBalance: 10000 + Math.floor(Math.random() * 50000),
-          solBalance: 2.5 + Math.random() * 10,
+          turfBalance: 25000 + Math.floor(Math.random() * 75000), // 25k-100k starting balance
+          solBalance: 5.0 + Math.random() * 20,                   // 5-25 SOL
+          stakedSol: Math.random() * 50,                          // 0-50 SOL staked
+          pendingRewards: Math.random() * 5,                      // 0-5 SOL rewards
           horses: [],
           facilities: [
             {
               id: '1',
               type: 'Stable' as const,
-              level: 1,
-              capacity: 5,
-              upgradeCost: 5000,
+              level: 2,                    // Start at level 2
+              capacity: 8,                 // More capacity
+              upgradeCost: 10000,
               benefits: {
-                trainingEfficiency: 1.0,
-                recoverySpeed: 1.0,
+                trainingEfficiency: 1.1,   // Better starting efficiency
+                recoverySpeed: 1.05,       // Faster recovery
                 breedingSuccessRate: 1.0
               }
             }
