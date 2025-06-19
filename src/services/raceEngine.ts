@@ -57,7 +57,7 @@ export class RaceEngine {
   constructor(horses: any[], raceConfig: any, callbacks: any) {
     this.callbacks = callbacks;
     this.raceState = {
-      horses: this.initializeHorses(horses),
+      horses: this.initializeHorses(horses, raceConfig.conditions.weather, raceConfig.conditions.trackCondition),
       distance: raceConfig.distance,
       weather: raceConfig.conditions.weather,
       trackCondition: raceConfig.conditions.trackCondition,
@@ -67,10 +67,10 @@ export class RaceEngine {
     };
   }
 
-  private initializeHorses(horses: any[]): RaceHorse[] {
+  private initializeHorses(horses: any[], weather: WeatherCondition, trackCondition: TrackCondition): RaceHorse[] {
     return horses.map((horse, index) => {
-      const weatherMod = this.getWeatherModifier(this.raceState.weather);
-      const trackMod = this.getTrackModifier(this.raceState.trackCondition);
+      const weatherMod = this.getWeatherModifier(weather);
+      const trackMod = this.getTrackModifier(trackCondition);
       
       return {
         id: horse.id,

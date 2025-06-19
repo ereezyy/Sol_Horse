@@ -340,7 +340,11 @@ const BreedingCenter: React.FC = () => {
             {/* Breeding Analysis & Control */}
             <div className="bg-white rounded-2xl shadow-lg p-6">
               <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+<<<<<<< HEAD
                 <Target className="w-6 h-6 text-purple-600" />
+=======
+                <Atom className="w-6 h-6 text-purple-600" />
+>>>>>>> 60725211e97a90a5df62961f81e295c0e4175345
                 Breeding Analysis
               </h3>
 
@@ -441,7 +445,11 @@ const BreedingCenter: React.FC = () => {
                 </div>
               ) : (
                 <div className="text-center py-12">
+<<<<<<< HEAD
                   <Target className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+=======
+                  <Atom className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+>>>>>>> 60725211e97a90a5df62961f81e295c0e4175345
                   <h4 className="text-lg font-semibold text-gray-700 mb-2">Select Both Parents</h4>
                   <p className="text-gray-500">Choose a mare and stallion to see breeding analysis</p>
                 </div>
