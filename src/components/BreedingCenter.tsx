@@ -12,7 +12,7 @@ import {
   CheckCircle,
   RefreshCw,
   Sparkles,
-  DNA,
+  Atom,
   Target,
   Shield,
   Brain
@@ -341,7 +341,7 @@ const BreedingCenter: React.FC = () => {
             {/* Breeding Analysis & Control */}
             <div className="bg-white rounded-2xl shadow-lg p-6">
               <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <DNA className="w-6 h-6 text-purple-600" />
+                <Atom className="w-6 h-6 text-purple-600" />
                 Breeding Analysis
               </h3>
 
@@ -442,7 +442,7 @@ const BreedingCenter: React.FC = () => {
                 </div>
               ) : (
                 <div className="text-center py-12">
-                  <DNA className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                  <Atom className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                   <h4 className="text-lg font-semibold text-gray-700 mb-2">Select Both Parents</h4>
                   <p className="text-gray-500">Choose a mare and stallion to see breeding analysis</p>
                 </div>
@@ -495,26 +495,39 @@ const BreedingCenter: React.FC = () => {
             {breedingHistory.length > 0 ? (
               <div className="space-y-4">
                 {breedingHistory.map((entry) => (
-                  <div key={entry.id} className="p-4 bg-gray-50 rounded-xl">
+                  <div key={entry.id} className={`p-4 rounded-xl border-2 ${
+                    entry.result ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'
+                  }`}>
                     <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-semibold text-gray-800">{entry.offspring}</h4>
+                      <div className="flex items-center gap-3">
+                        {entry.result ? (
+                          <CheckCircle className="w-6 h-6 text-green-600" />
+                        ) : (
+                          <AlertCircle className="w-6 h-6 text-red-600" />
+                        )}
+                        <div>
+                          <h4 className="font-semibold text-gray-800">{entry.horseName}</h4>
+                          <p className="text-sm text-gray-600">{entry.programName}</p>
+                        </div>
+                      </div>
                       <span className="text-sm text-gray-500">
                         {new Date(entry.timestamp).toLocaleDateString()}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-600 mb-2">
-                      {entry.mare} × {entry.stallion}
-                    </p>
-                    <div className="flex items-center gap-4">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        entry.rarity === 'Legendary' ? 'bg-yellow-100 text-yellow-800' :
-                        entry.rarity === 'Epic' ? 'bg-purple-100 text-purple-800' :
-                        entry.rarity === 'Rare' ? 'bg-blue-100 text-blue-800' :
-                        'bg-green-100 text-green-800'
-                      }`}>
-                        {entry.rarity}
-                      </span>
-                      <span className="text-sm text-gray-600">Cost: {entry.cost.toLocaleString()} $TURF</span>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        {Object.entries(entry.statChanges).map(([stat, change]) => (
+                          change > 0 && (
+                            <span key={stat} className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              entry.result ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                            }`}>
+                              +{change} {stat.charAt(0).toUpperCase() + stat.slice(1)}
+                            </span>
+                          )
+                        ))}
+                      </div>
+                      <span className="text-sm text-gray-600">Cost: {entry.cost} $TURF</span>
                     </div>
                   </div>
                 ))}
@@ -523,7 +536,7 @@ const BreedingCenter: React.FC = () => {
               <div className="text-center py-12">
                 <Clock className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                 <h4 className="text-xl font-semibold text-gray-600 mb-2">No Breeding History</h4>
-                <p className="text-gray-500">Your breeding attempts will appear here</p>
+                <p className="text-gray-500">Completed breeding sessions will appear here</p>
               </div>
             )}
           </motion.div>
