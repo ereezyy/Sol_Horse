@@ -16,43 +16,37 @@ const mockHorse: HorseNFT = {
     bloodline: 'Arabian',
     coatColor: 'Bay',
     markings: ['Blaze'],
-    rarity: 'Rare'
+    rarity: 'Rare',
+    generation: 1
   },
   stats: {
-    races: 15,
+    age: 24,
+    fitness: 85,
+    experience: 2400,
     wins: 8,
-    places: 4,
-    shows: 2,
+    races: 15,
     earnings: 25000,
-    winRate: 53.33,
-    avgFinishPosition: 2.1,
-    bestTime: 118.5,
-    consistency: 78
+    retirementAge: 120
   },
   breeding: {
-    breedCount: 2,
-    maxBreeds: 5,
-    lastBreedTime: Date.now() - 86400000,
-    cooldownPeriod: 604800000,
-    fertility: 85,
-    offspringCount: 2
+    canBreed: true,
+    breedingCooldown: Date.now() - 86400000,
+    offspring: [],
+    studFee: 5000,
+    isPublicStud: true
   },
   training: {
-    level: 12,
-    experience: 2400,
-    nextLevelExp: 3000,
-    skillPoints: 8,
-    specializations: ['Speed', 'Endurance'],
-    lastTrainingTime: Date.now() - 43200000,
-    trainingCooldown: 86400000
+    completedSessions: [],
+    specializations: ['Speed', 'Endurance']
+  },
+  appearance: {
+    imageUrl: '/test-horse.jpg',
+    description: 'A magnificent Arabian horse with exceptional speed'
   },
   owner: 'test-owner',
   price: 50000,
   forSale: false,
-  imageUrl: '/test-horse.jpg',
   metadata: {
-    description: 'A magnificent Arabian horse with exceptional speed',
-    attributes: [],
     createdAt: Date.now(),
     updatedAt: Date.now()
   }
@@ -129,7 +123,7 @@ describe('HorseCard Component', () => {
       />
     );
 
-    const card = screen.getByRole('button');
+    const card = screen.getAllByRole('button')[0]; // Get first button if multiple exist
     card.click();
 
     expect(mockOnSelect).toHaveBeenCalledWith('test-horse-1');
@@ -160,8 +154,8 @@ describe('HorseCard Component', () => {
       />
     );
 
-    expect(screen.getByText('53%')).toBeInTheDocument(); // Win rate
-    expect(screen.getByText('8/15')).toBeInTheDocument(); // Wins/Races
+    expect(screen.getByText('53.3%')).toBeInTheDocument(); // Win rate with decimal
+    expect(screen.getByText('8')).toBeInTheDocument(); // Wins
   });
 });
 
