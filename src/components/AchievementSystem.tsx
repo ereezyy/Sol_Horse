@@ -1,26 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Trophy, 
-  Star, 
-  Medal, 
-  Crown, 
-  Target, 
-  Zap, 
-  Heart, 
-  Shield,
-  Award,
-  Lock,
-  Unlock,
-  Gift,
-  Flame,
-  CheckCircle,
-  Progress,
-  TrendingUp,
-  Calendar,
-  Users,
-  DollarSign
-} from 'lucide-react';
+import { Trophy, Star, Medal, Crown, Target, Zap, Heart, Shield, Award, Lock, Unlock, Gift, Flame, CheckCircle, Cross as Progress, TrendingUp, Calendar, Users, DollarSign } from 'lucide-react';
 import { useGameStore } from '../store/gameStore';
 
 interface Achievement {
