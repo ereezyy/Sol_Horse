@@ -1,8 +1,28 @@
 {
-  "name": "ai-horse-racing",
+  "name": "sol-horse",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "AI-Powered Solana Horse Racing Game - A blockchain-based horse racing game with NFT ownership, breeding, and competitive racing on the Solana network.",
   "type": "module",
+  "keywords": [
+    "solana",
+    "nft",
+    "horse-racing",
+    "blockchain",
+    "gaming",
+    "react",
+    "typescript",
+    "web3"
+  ],
+  "author": "ereezyy",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ereezyy/Sol_Horse.git"
+  },
+  "homepage": "https://github.com/ereezyy/Sol_Horse#readme",
+  "bugs": {
+    "url": "https://github.com/ereezyy/Sol_Horse/issues"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
