@@ -12,7 +12,9 @@ import {
   Wallet,
   Crown,
   Zap,
-  TrendingUp
+  TrendingUp,
+  Target,
+  Award
 } from 'lucide-react';
 import { useGameStore } from '../store/gameStore';
 
@@ -26,8 +28,10 @@ const Navigation: React.FC = () => {
     { id: 'training', label: 'Training', icon: TrendingUp, color: 'blue' },
     { id: 'racing', label: 'Racing', icon: Trophy, color: 'red' },
     { id: 'breeding', label: 'Breeding', icon: Heart, color: 'pink' },
-    { id: 'marketplace', label: 'Marketplace', icon: ShoppingCart, color: 'purple' },
-    { id: 'guild', label: 'Guilds', icon: Users, color: 'orange' },
+    { id: 'tournaments', label: 'Tournaments', icon: Award, color: 'purple' },
+    { id: 'quests', label: 'Daily Quests', icon: Target, color: 'green' },
+    { id: 'marketplace', label: 'Marketplace', icon: ShoppingCart, color: 'orange' },
+    { id: 'guild', label: 'Guilds', icon: Users, color: 'indigo' },
     { id: 'profile', label: 'Profile', icon: User, color: 'gray' }
   ];
 
@@ -96,12 +100,12 @@ const Navigation: React.FC = () => {
 
       {/* Navigation Tabs */}
       <div className="px-6">
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 overflow-x-auto">
           {navItems.map((item) => (
             <motion.button
               key={item.id}
               onClick={() => setCurrentView(item.id as any)}
-              className={`flex items-center gap-2 px-4 py-3 rounded-t-xl font-medium transition-all relative ${
+              className={`flex items-center gap-2 px-4 py-3 rounded-t-xl font-medium transition-all relative whitespace-nowrap ${
                 currentView === item.id
                   ? `text-${item.color}-600 bg-${item.color}-50`
                   : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'

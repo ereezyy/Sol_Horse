@@ -8,6 +8,8 @@ import RaceTrack from './components/RaceTrack';
 import BettingPanel from './components/BettingPanel';
 import BreedingCenter from './components/BreedingCenter';
 import TrainingCenter from './components/TrainingCenter';
+import TournamentCenter from './components/TournamentCenter';
+import DailyQuests from './components/DailyQuests';
 import PlayerProfile from './components/PlayerProfile';
 import { HorseNFT, Race, Player } from './types';
 
@@ -173,6 +175,10 @@ function App() {
         return <RacingView races={upcomingRaces} horses={horses} />;
       case 'breeding':
         return <BreedingCenter />;
+      case 'tournaments':
+        return <TournamentCenter />;
+      case 'quests':
+        return <DailyQuests />;
       case 'marketplace':
         return <MarketplaceView horses={marketplaceHorses} />;
       case 'profile':

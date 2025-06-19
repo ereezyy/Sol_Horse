@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { HorseNFT, Player, Race, Bet, GameState } from '../types';
+import { HorseNFT, Player, Race, Bet, GameState, Tournament, TournamentEntry } from '../types';
 
 interface GameStore extends GameState {
   // Actions
@@ -13,6 +13,12 @@ interface GameStore extends GameState {
   updatePlayerBalance: (amount: number) => void;
   addNotification: (notification: any) => void;
   markNotificationRead: (notificationId: string) => void;
+  
+  // Tournament actions
+  addTournament: (tournament: Tournament) => void;
+  joinTournament: (tournamentId: string, entry: TournamentEntry) => void;
+  updateTournament: (tournamentId: string, updates: Partial<Tournament>) => void;
+  
   initializeGame: () => void;
 }
 
@@ -42,6 +48,18 @@ const createMockPlayer = (): Player => ({
         benefits: {
           trainingEfficiency: 1.2,
           recoverySpeed: 1.1,
+          breedingSuccessRate: 1.0
+        }
+      },
+      {
+        id: '2',
+        type: 'Training Ground',
+        level: 2,
+        capacity: 4,
+        upgradeCost: 15000,
+        benefits: {
+          trainingEfficiency: 1.3,
+          recoverySpeed: 1.0,
           breedingSuccessRate: 1.0
         }
       }
@@ -154,6 +172,25 @@ export const useGameStore = create<GameStore>((set, get) => ({
   markNotificationRead: (notificationId) => set((state) => ({
     notifications: state.notifications.map(notif =>
       notif.id === notificationId ? { ...notif, read: true } : notif
+    )
+  })),
+
+  // Tournament actions
+  addTournament: (tournament) => set((state) => ({
+    tournaments: [...state.tournaments, tournament]
+  })),
+  
+  joinTournament: (tournamentId, entry) => set((state) => ({
+    tournaments: state.tournaments.map(tournament =>
+      tournament.id === tournamentId
+        ? { ...tournament, participants: [...tournament.participants, entry] }
+        : tournament
+    )
+  })),
+  
+  updateTournament: (tournamentId, updates) => set((state) => ({
+    tournaments: state.tournaments.map(tournament =>
+      tournament.id === tournamentId ? { ...tournament, ...updates } : tournament
     )
   })),
 

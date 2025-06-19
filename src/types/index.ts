@@ -290,6 +290,8 @@ export interface Tournament {
     entryFee: number;
     minHorseLevel: number;
     maxParticipants: number;
+    minReputation?: number;
+    maxReputation?: number;
     guildOnly?: boolean;
   };
   
@@ -309,11 +311,17 @@ export interface Tournament {
   
   // Status
   status: 'Upcoming' | 'Registration' | 'Active' | 'Completed';
+  
+  // Additional properties
+  category?: string;
+  tier?: string;
 }
 
 export interface TournamentEntry {
   playerId: string;
   horseId: string;
+  playerName: string;
+  horseName: string;
   seed: number;
   currentRound: number;
   eliminated: boolean;
@@ -383,13 +391,13 @@ export interface GameState {
   
   // UI state
   selectedHorse: string | null;
-  currentView: 'stable' | 'racing' | 'breeding' | 'marketplace' | 'profile' | 'guild';
+  currentView: 'stable' | 'racing' | 'breeding' | 'marketplace' | 'profile' | 'guild' | 'training' | 'tournaments' | 'quests';
   notifications: Notification[];
 }
 
 export interface Notification {
   id: string;
-  type: 'race_result' | 'breeding_complete' | 'training_complete' | 'marketplace_sale' | 'guild_invite';
+  type: 'race_result' | 'breeding_complete' | 'training_complete' | 'marketplace_sale' | 'guild_invite' | 'tournament' | 'quest_complete';
   title: string;
   message: string;
   timestamp: number;
