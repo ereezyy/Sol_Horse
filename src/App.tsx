@@ -60,18 +60,21 @@ const generateMockHorses = (): HorseNFT[] => {
       stats: {
         age: 24 + Math.floor(Math.random() * 60), // 2-7 years
         fitness: 80 + Math.floor(Math.random() * 20),
-        experience: races * 10,
+        experience: races * 15 + Math.floor(Math.random() * 500), // More varied experience
         wins,
         races,
-        earnings: wins * (1000 + Math.random() * 5000),
+        earnings: wins * (2000 + Math.random() * 8000), // Higher earnings potential
         retirementAge: 96 + Math.floor(Math.random() * 24) // 8-10 years
       },
       breeding: {
-        canBreed: Math.random() > 0.3,
-        breedingCooldown: Date.now() - Math.floor(Math.random() * 1000000),
+        canBreed: Math.random() > 0.2, // More horses available for breeding
+        breedingCooldown: Date.now() - Math.floor(Math.random() * 2000000), // Longer cooldown variation
         offspring: [],
-        studFee: rarity === 'Legendary' ? 25000 : rarity === 'Epic' ? 15000 : 5000,
-        isPublicStud: Math.random() > 0.5
+        studFee: rarity === 'Legendary' ? 50000 : 
+                 rarity === 'Epic' ? 25000 : 
+                 rarity === 'Rare' ? 15000 : 
+                 rarity === 'Uncommon' ? 8000 : 3000, // More realistic pricing tiers
+        isPublicStud: Math.random() > 0.4 // More public studs available
       },
       training: {
         completedSessions: [],
@@ -83,16 +86,33 @@ const generateMockHorses = (): HorseNFT[] => {
         accessories: []
       },
       lore: {
-        backstory: `A ${rarity.toLowerCase()} ${coatColors[Math.floor(Math.random() * coatColors.length)].toLowerCase()} horse with exceptional racing potential.`,
-        personality: 'Determined and competitive',
-        quirks: ['Loves carrots', 'Gets excited before races'],
-        achievements: wins > 10 ? ['Multiple race winner'] : []
+        backstory: `A ${rarity.toLowerCase()} ${coatColors[Math.floor(Math.random() * coatColors.length)].toLowerCase()} horse with exceptional racing potential. Born from the ${bloodlines[Math.floor(Math.random() * bloodlines.length)]} bloodline, this horse shows remarkable promise on the track.`,
+        personality: ['Determined and competitive', 'Calm and focused', 'Energetic and spirited', 'Intelligent and strategic', 'Bold and fearless'][Math.floor(Math.random() * 5)],
+        quirks: [
+          ['Loves carrots', 'Gets excited before races'],
+          ['Prefers morning training', 'Enjoys being groomed'],
+          ['Responds well to music', 'Has a favorite stable mate'],
+          ['Loves rainy weather', 'Always hungry after races'],
+          ['Enjoys crowd cheers', 'Sleeps standing up']
+        ][Math.floor(Math.random() * 5)],
+        achievements: wins > 15 ? ['Champion racer', 'Multiple stakes winner'] : 
+                     wins > 8 ? ['Consistent performer', 'Stakes winner'] :
+                     wins > 3 ? ['Promising newcomer'] : []
       },
-      owner: Math.random() > 0.7 ? 'current-player' : `owner-${Math.floor(Math.random() * 10)}`,
-      isForSale: Math.random() > 0.8,
-      price: Math.random() > 0.8 ? 10000 + Math.floor(Math.random() * 90000) : undefined,
-      isForLease: Math.random() > 0.9,
-      leaseTerms: undefined
+      owner: Math.random() > 0.6 ? 'current-player' : `owner-${Math.floor(Math.random() * 10)}`, // More player-owned horses
+      isForSale: Math.random() > 0.75, // More horses available for purchase
+      price: Math.random() > 0.75 ? 
+        (rarity === 'Legendary' ? 80000 + Math.floor(Math.random() * 120000) :
+         rarity === 'Epic' ? 40000 + Math.floor(Math.random() * 60000) :
+         rarity === 'Rare' ? 20000 + Math.floor(Math.random() * 30000) :
+         rarity === 'Uncommon' ? 10000 + Math.floor(Math.random() * 15000) :
+         5000 + Math.floor(Math.random() * 10000)) : undefined, // Rarity-based pricing
+      isForLease: Math.random() > 0.85, // Some horses available for lease
+      leaseTerms: Math.random() > 0.85 ? {
+        duration: 7 + Math.floor(Math.random() * 21), // 1-4 weeks
+        cost: 1000 + Math.floor(Math.random() * 4000),
+        revenueShare: 0.6 + Math.random() * 0.3 // 60-90% to lessee
+      } : undefined
     };
   });
 };
@@ -100,40 +120,53 @@ const generateMockHorses = (): HorseNFT[] => {
 const generateMockRaces = (): Race[] => {
   const raceNames = [
     'Thunder Valley Sprint', 'Lightning Derby', 'Storm Peak Classic', 'Wind Ridge Stakes',
-    'Fire Mountain Cup', 'Midnight Express', 'Golden Gate Gallop', 'Silver Creek Derby'
+    'Fire Mountain Cup', 'Midnight Express', 'Golden Gate Gallop', 'Silver Creek Derby',
+    'Eclipse Championship', 'Royal Ascot Stakes', 'Kentucky Thunder', 'Dubai Gold Cup'
   ];
   
   const surfaces = ['Dirt', 'Turf', 'Synthetic'];
-  const distances = [1200, 1400, 1600, 2000, 2400];
+  const distances = [1200, 1400, 1600, 2000, 2400, 3200]; // Added longer distance
   const weathers = ['Clear', 'Cloudy', 'Rainy', 'Windy'];
   const trackConditions = ['Fast', 'Good', 'Soft', 'Heavy'];
+  const tiers = ['Novice', 'Professional', 'Stakes', 'Graded', 'Championship'];
   
-  return Array.from({ length: 6 }, (_, i) => ({
-    id: `race-${i + 1}`,
-    name: raceNames[i],
-    type: i < 2 ? 'Sprint' : i < 4 ? 'Middle Distance' : 'Long Distance' as any,
-    surface: surfaces[Math.floor(Math.random() * surfaces.length)] as any,
-    distance: distances[Math.floor(Math.random() * distances.length)],
-    tier: 'Professional' as any,
-    conditions: {
-      weather: weathers[Math.floor(Math.random() * weathers.length)] as any,
-      temperature: 15 + Math.floor(Math.random() * 20),
-      trackCondition: trackConditions[Math.floor(Math.random() * trackConditions.length)] as any
-    },
-    requirements: {
-      minAge: 24,
-      maxAge: 84,
-      minExperience: 0
-    },
-    entryFee: 1000 + Math.floor(Math.random() * 4000),
-    prizePool: 50000 + Math.floor(Math.random() * 200000),
-    prizeDistribution: [50, 25, 15, 10],
-    participants: [],
-    maxParticipants: 8,
-    registrationDeadline: Date.now() + 86400000, // 24 hours
-    raceTime: Date.now() + 172800000, // 48 hours
-    status: 'Registration' as any
-  }));
+  return Array.from({ length: 8 }, (_, i) => { // Increased to 8 races
+    const tier = tiers[Math.floor(Math.random() * tiers.length)] as any;
+    const basePrize = tier === 'Championship' ? 500000 :
+                     tier === 'Graded' ? 250000 :
+                     tier === 'Stakes' ? 100000 :
+                     tier === 'Professional' ? 50000 : 25000;
+    
+    return {
+      id: `race-${i + 1}`,
+      name: raceNames[i] || `Race ${i + 1}`,
+      type: i < 3 ? 'Sprint' : i < 6 ? 'Middle Distance' : 'Long Distance' as any,
+      surface: surfaces[Math.floor(Math.random() * surfaces.length)] as any,
+      distance: distances[Math.floor(Math.random() * distances.length)],
+      tier,
+      conditions: {
+        weather: weathers[Math.floor(Math.random() * weathers.length)] as any,
+        temperature: 15 + Math.floor(Math.random() * 20),
+        trackCondition: trackConditions[Math.floor(Math.random() * trackConditions.length)] as any
+      },
+      requirements: {
+        minAge: 24,
+        maxAge: tier === 'Championship' ? 60 : 84, // Age restrictions for top races
+        minExperience: tier === 'Championship' ? 1000 : 
+                      tier === 'Graded' ? 500 :
+                      tier === 'Stakes' ? 200 : 0
+      },
+      entryFee: Math.floor(basePrize * 0.02) + Math.floor(Math.random() * Math.floor(basePrize * 0.03)), // 2-5% of prize
+      prizePool: basePrize + Math.floor(Math.random() * basePrize * 0.5), // Up to 50% variation
+      prizeDistribution: [50, 25, 15, 10], // Winner gets 50%, etc.
+      participants: [],
+      maxParticipants: tier === 'Championship' ? 12 : 
+                      tier === 'Graded' ? 10 : 8, // Bigger fields for bigger races
+      registrationDeadline: Date.now() + (24 + Math.floor(Math.random() * 48)) * 3600000, // 1-3 days
+      raceTime: Date.now() + (48 + Math.floor(Math.random() * 120)) * 3600000, // 2-7 days
+      status: ['Registration', 'Registration', 'Registration', 'Upcoming'][Math.floor(Math.random() * 4)] as any
+    };
+  });
 };
 
 function App() {

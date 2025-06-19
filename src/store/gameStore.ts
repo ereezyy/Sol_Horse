@@ -26,28 +26,28 @@ interface GameStore extends GameState {
 const createMockPlayer = (): Player => ({
   id: 'player-1',
   walletAddress: 'Demo7xK9XjZ2k5...Demo123',
-  username: 'DemoPlayer',
+  username: 'Champion Trainer',
   profile: {
     avatar: '',
-    bio: 'Demo player exploring the racing world!',
-    joinDate: Date.now() - 86400000 * 30, // 30 days ago
+    bio: 'Elite horse trainer and racing strategist!',
+    joinDate: Date.now() - 86400000 * 90, // 90 days ago for more experience
     country: 'Global',
-    stableName: 'Demo Stables'
+    stableName: 'Elite Racing Stables'
   },
   assets: {
-    turfBalance: 50000,        // Increased starting balance for better gameplay
-    solBalance: 10.0,          // More SOL for transactions
+    turfBalance: 100000,       // Increased for better gameplay experience
+    solBalance: 25.0,          // More SOL for premium features
     horses: [],
     facilities: [
       {
         id: '1',
         type: 'Stable',
-        level: 3,                // Higher starting level
-        capacity: 12,            // More horse capacity
-        upgradeCost: 15000,
+        level: 5,                // Premium starting level
+        capacity: 20,            // Large horse capacity
+        upgradeCost: 25000,
         benefits: {
-          trainingEfficiency: 1.3,  // Better training efficiency
-          recoverySpeed: 1.2,       // Faster recovery
+          trainingEfficiency: 1.5,  // Excellent training efficiency
+          recoverySpeed: 1.4,       // Fast recovery
           breedingSuccessRate: 1.0
         }
       },
@@ -66,13 +66,13 @@ const createMockPlayer = (): Player => ({
     ]
   },
   stats: {
-    totalRaces: 25,
-    wins: 8,
-    winRate: 0.32,
-    totalEarnings: 45000,
-    totalSpent: 30000,
-    netProfit: 15000,
-    reputation: 150,
+    totalRaces: 45,            // More racing experience
+    wins: 18,                  // Better win record
+    winRate: 0.40,             // 40% win rate - very good
+    totalEarnings: 125000,     // Substantial earnings
+    totalSpent: 75000,         // Smart spending
+    netProfit: 50000,          // Profitable operation
+    reputation: 350,           // High reputation
     achievements: [
       {
         id: '1',
@@ -80,24 +80,42 @@ const createMockPlayer = (): Player => ({
         description: 'Won your first race',
         icon: 'trophy',
         rarity: 'Common',
-        unlockedAt: Date.now() - 86400000 * 20,
+        unlockedAt: Date.now() - 86400000 * 80,
         rewards: { turfTokens: 1000, title: 'Winner' }
       },
       {
         id: '2', 
-        name: 'Stable Builder',
-        description: 'Owned 5 horses',
+        name: 'Stable Master',
+        description: 'Owned 10 horses',
         icon: 'home',
         rarity: 'Uncommon',
-        unlockedAt: Date.now() - 86400000 * 15,
+        unlockedAt: Date.now() - 86400000 * 60,
         rewards: { turfTokens: 2500 }
+      },
+      {
+        id: '3',
+        name: 'Champion Trainer',
+        description: 'Achieved 40% win rate',
+        icon: 'star',
+        rarity: 'Rare',
+        unlockedAt: Date.now() - 86400000 * 30,
+        rewards: { turfTokens: 5000, title: 'Champion' }
+      },
+      {
+        id: '4',
+        name: 'Elite Breeder',
+        description: 'Successfully bred 5 horses',
+        icon: 'heart',
+        rarity: 'Epic',
+        unlockedAt: Date.now() - 86400000 * 15,
+        rewards: { turfTokens: 10000, title: 'Elite Breeder' }
       }
     ]
   },
   social: {
     friends: [],
-    followers: 12,
-    following: 8
+    followers: 45,            // More followers for successful trainer
+    following: 25
   },
   preferences: {
     notifications: true,

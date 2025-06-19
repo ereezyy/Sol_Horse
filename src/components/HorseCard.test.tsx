@@ -154,8 +154,10 @@ describe('HorseCard Component', () => {
       />
     );
 
-    expect(screen.getByText('53.3%')).toBeInTheDocument(); // Win rate with decimal
-    expect(screen.getByText('8')).toBeInTheDocument(); // Wins
+    // Win rate is calculated as (8/15)*100 = 53.3, displayed as 53.3%
+    expect(screen.getByText('53.3%')).toBeInTheDocument(); // Win rate
+    expect(screen.getByText('8')).toBeInTheDocument(); // Wins count
+    // Note: Total races (15) might not be displayed directly in the component
   });
 });
 
