@@ -10,6 +10,9 @@ import BreedingCenter from './components/BreedingCenter';
 import TrainingCenter from './components/TrainingCenter';
 import TournamentCenter from './components/TournamentCenter';
 import DailyQuests from './components/DailyQuests';
+import AchievementSystem from './components/AchievementSystem';
+import SeasonalEvents from './components/SeasonalEvents';
+import AnalyticsDashboard from './components/AnalyticsDashboard';
 import PlayerProfile from './components/PlayerProfile';
 import { HorseNFT, Race, Player } from './types';
 
@@ -179,9 +182,16 @@ function App() {
         return <TournamentCenter />;
       case 'quests':
         return <DailyQuests />;
+      case 'achievements':
+        return <AchievementSystem />;
+      case 'events':
+        return <SeasonalEvents />;
+      case 'analytics':
+        return <AnalyticsDashboard />;
       case 'marketplace':
         return <MarketplaceView horses={marketplaceHorses} />;
       case 'profile':
+        
         return <PlayerProfile />;
       case 'guild':
         return <GuildView />;

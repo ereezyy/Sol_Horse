@@ -14,7 +14,11 @@ import {
   Zap,
   TrendingUp,
   Target,
-  Award
+  Award,
+  Calendar,
+  BarChart3,
+  Gift,
+  Medal
 } from 'lucide-react';
 import { useGameStore } from '../store/gameStore';
 
@@ -30,8 +34,11 @@ const Navigation: React.FC = () => {
     { id: 'breeding', label: 'Breeding', icon: Heart, color: 'pink' },
     { id: 'tournaments', label: 'Tournaments', icon: Award, color: 'purple' },
     { id: 'quests', label: 'Daily Quests', icon: Target, color: 'green' },
+    { id: 'achievements', label: 'Achievements', icon: Medal, color: 'yellow' },
+    { id: 'events', label: 'Seasonal Events', icon: Calendar, color: 'indigo' },
+    { id: 'analytics', label: 'Analytics', icon: BarChart3, color: 'cyan' },
     { id: 'marketplace', label: 'Marketplace', icon: ShoppingCart, color: 'orange' },
-    { id: 'guild', label: 'Guilds', icon: Users, color: 'indigo' },
+    { id: 'guild', label: 'Guilds', icon: Users, color: 'violet' },
     { id: 'profile', label: 'Profile', icon: User, color: 'gray' }
   ];
 
@@ -100,7 +107,7 @@ const Navigation: React.FC = () => {
 
       {/* Navigation Tabs */}
       <div className="px-6">
-        <div className="flex items-center gap-1 overflow-x-auto">
+        <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
           {navItems.map((item) => (
             <motion.button
               key={item.id}
