@@ -1,9 +1,21 @@
 # Sol Horse - AI-Powered Solana Horse Racing Game
 
-![Solana](https://img.shields.io/badge/Solana-9945FF?style=for-the-badge&logo=solana&logoColor=white)
-![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
-![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+<div align="center">
+
+![Sol Horse Banner](sol_horse_banner.png)
+
+![Sol Horse Logo](sol_horse_logo.png)
+
+[![Made by ereezyy](https://img.shields.io/badge/Made%20by-ereezyy-blue?style=for-the-badge&logo=github)](https://github.com/ereezyy)
+[![TypeScript](https://img.shields.io/badge/TypeScript-React-blue?style=for-the-badge&logo=typescript)](https://typescriptlang.org)
+[![Blockchain](https://img.shields.io/badge/Blockchain-Solana-gold?style=for-the-badge&logo=solana)](https://solana.com)
+[![MIT License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
+
+**🏇 NFT Horse Racing • 🎮 Blockchain Gaming • 🤖 AI-Powered • ⚡ Solana Network**
+
+</div>
+
+---
 
 ## 🏇 Overview
 
