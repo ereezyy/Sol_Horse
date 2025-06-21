@@ -9,6 +9,7 @@ import BettingPanel from './components/BettingPanel';
 import BreedingCenter from './components/BreedingCenter';
 import TrainingCenter from './components/TrainingCenter';
 import TournamentCenter from './components/TournamentCenter';
+import TournamentSystem from './components/TournamentSystem';
 import DailyQuests from './components/DailyQuests';
 import AchievementSystem from './components/AchievementSystem';
 import SeasonalEvents from './components/SeasonalEvents';
@@ -212,7 +213,13 @@ function App() {
       case 'breeding':
         return <BreedingCenter />;
       case 'tournaments':
-        return <TournamentCenter />;
+        return <TournamentSystem 
+          playerHorses={horses.filter(h => h.isOwned)} 
+          onEnterTournament={(tournamentId, horseId) => {
+            console.log(`Entering tournament ${tournamentId} with horse ${horseId}`);
+            // Add tournament entry logic here
+          }} 
+        />;
       case 'quests':
         return <DailyQuests />;
       case 'achievements':
