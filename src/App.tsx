@@ -10,6 +10,8 @@ import BreedingCenter from './components/BreedingCenter';
 import TrainingCenter from './components/TrainingCenter';
 import TournamentCenter from './components/TournamentCenter';
 import TournamentSystem from './components/TournamentSystem';
+import Marketplace from './components/Marketplace';
+import GuildSystem from './components/GuildSystem';
 import DailyQuests from './components/DailyQuests';
 import AchievementSystem from './components/AchievementSystem';
 import SeasonalEvents from './components/SeasonalEvents';
@@ -229,12 +231,11 @@ function App() {
       case 'analytics':
         return <AnalyticsDashboard />;
       case 'marketplace':
-        return <MarketplaceView horses={marketplaceHorses} />;
+        return <Marketplace />;
       case 'profile':
-        
         return <PlayerProfile />;
       case 'guild':
-        return <GuildView />;
+        return <GuildSystem />;
       default:
         return <StableView horses={playerHorses} />;
     }
@@ -438,94 +439,5 @@ const RacingView: React.FC<{ races: Race[]; horses: HorseNFT[] }> = ({ races, ho
   );
 };
 
-// Marketplace View Component
-const MarketplaceView: React.FC<{ horses: HorseNFT[] }> = ({ horses }) => {
-  const [sortBy, setSortBy] = React.useState<'price' | 'rarity' | 'performance'>('price');
-  const [filterRarity, setFilterRarity] = React.useState<string>('all');
-
-  const filteredHorses = horses
-    .filter(horse => filterRarity === 'all' || horse.genetics.rarity === filterRarity)
-    .sort((a, b) => {
-      switch (sortBy) {
-        case 'price':
-          return (a.price || 0) - (b.price || 0);
-        case 'rarity':
-          const rarityOrder = ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary'];
-          return rarityOrder.indexOf(b.genetics.rarity) - rarityOrder.indexOf(a.genetics.rarity);
-        case 'performance':
-          return (b.stats.wins / Math.max(b.stats.races, 1)) - (a.stats.wins / Math.max(a.stats.races, 1));
-        default:
-          return 0;
-      }
-    });
-
-  return (
-    <div className="space-y-8">
-      <div className="bg-white rounded-2xl shadow-xl p-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">Horse Marketplace 🛒</h1>
-        <p className="text-gray-600">Discover and purchase exceptional racing horses</p>
-      </div>
-
-      {/* Filters */}
-      <div className="bg-white rounded-2xl shadow-lg p-6">
-        <div className="flex flex-wrap items-center gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
-              className="border border-gray-300 rounded-lg px-3 py-2"
-            >
-              <option value="price">Price</option>
-              <option value="rarity">Rarity</option>
-              <option value="performance">Performance</option>
-            </select>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Rarity</label>
-            <select
-              value={filterRarity}
-              onChange={(e) => setFilterRarity(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2"
-            >
-              <option value="all">All Rarities</option>
-              <option value="Common">Common</option>
-              <option value="Uncommon">Uncommon</option>
-              <option value="Rare">Rare</option>
-              <option value="Epic">Epic</option>
-              <option value="Legendary">Legendary</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* Horse Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredHorses.map((horse) => (
-          <HorseCard key={horse.id} horse={horse} />
-        ))}
-      </div>
-    </div>
-  );
-};
-
-// Guild View Component
-const GuildView: React.FC = () => {
-  return (
-    <div className="space-y-8">
-      <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
-        <div className="text-6xl mb-4">🏛️</div>
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">Guilds Coming Soon</h1>
-        <p className="text-gray-600 mb-6">
-          Join forces with other trainers, compete in team tournaments, and build legendary stables together
-        </p>
-        <button className="px-8 py-3 bg-purple-500 hover:bg-purple-600 text-white rounded-xl font-semibold transition-colors">
-          Join Beta Testing
-        </button>
-      </div>
-    </div>
-  );
-};
 
 export default App;
