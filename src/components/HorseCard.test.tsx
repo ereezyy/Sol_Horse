@@ -115,7 +115,7 @@ describe('HorseCard Component', () => {
   it('calls onSelect when clicked', () => {
     const mockOnSelect = vi.fn();
     
-    render(
+    const { container } = render(
       <HorseCard 
         horse={mockHorse} 
         onSelect={mockOnSelect}
@@ -123,7 +123,8 @@ describe('HorseCard Component', () => {
       />
     );
 
-    const card = screen.getAllByRole('button')[0]; // Get first button if multiple exist
+    // Find the main view details button
+    const card = container.querySelector('button.bg-blue-500');
     card.click();
 
     expect(mockOnSelect).toHaveBeenCalledWith('test-horse-1');
@@ -146,16 +147,16 @@ describe('HorseCard Component', () => {
   it('shows win rate and race statistics', () => {
     const mockOnSelect = vi.fn();
     
-    render(
-      <HorseCard 
-        horse={mockHorse} 
+    const { getByText } = render(
+      <HorseCard
+        horse={mockHorse}
         onSelect={mockOnSelect}
         isSelected={false}
       />
     );
 
     // Win rate is calculated as (8/15)*100 = 53.3, displayed as 53.3%
-    expect(screen.getByText('53.3%')).toBeInTheDocument(); // Win rate
+    expect(getByText('53.3%')).toBeInTheDocument(); // Win rate
     expect(screen.getByText('8')).toBeInTheDocument(); // Wins count
     // Note: Total races (15) might not be displayed directly in the component
   });
