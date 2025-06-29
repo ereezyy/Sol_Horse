@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, MotionProps } from 'framer-motion';
 import { 
   Star, 
   Zap, 
@@ -14,9 +14,10 @@ import {
 } from 'lucide-react';
 import { HorseNFT } from '../types';
 
-interface HorseCardProps {
+interface HorseCardProps extends React.HTMLAttributes<HTMLDivElement> {
   horse: HorseNFT;
-  onSelect?: () => void;
+  onSelect?: (id: string) => void;
+  isSelected?: boolean;
   showActions?: boolean;
   compact?: boolean;
 }
@@ -24,6 +25,7 @@ interface HorseCardProps {
 const HorseCard: React.FC<HorseCardProps> = ({ 
   horse, 
   onSelect, 
+  isSelected = false,
   showActions = true, 
   compact = false 
 }) => {
@@ -71,10 +73,11 @@ const HorseCard: React.FC<HorseCardProps> = ({
 
   if (compact) {
     return (
-      <motion.div
+      <motion.button
+        type="button"
         className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 cursor-pointer"
         whileHover={{ y: -2, shadow: "0 10px 25px rgba(0,0,0,0.1)" }}
-        onClick={onSelect}
+        onClick={() => onSelect && onSelect(horse.id)}
       >
         <div className="flex items-center gap-3">
           {/* Horse Avatar */}
@@ -101,13 +104,13 @@ const HorseCard: React.FC<HorseCardProps> = ({
             <p className="text-xs text-gray-600">{winRate.toFixed(1)}% WR</p>
           </div>
         </div>
-      </motion.div>
+      </motion.button>
     );
   }
 
   return (
-    <motion.div
-      className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden"
+    <motion.div 
+      className={`bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden ${isSelected ? 'ring-4 ring-blue-500' : ''}`}
       whileHover={{ y: -4, shadow: "0 20px 40px rgba(0,0,0,0.1)" }}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -134,6 +137,7 @@ const HorseCard: React.FC<HorseCardProps> = ({
                   {horse.genetics.rarity}
                 </div>
                 <p className="text-lg font-bold text-gray-800 win-rate">{winRate.toFixed(1)}%</p>
+              </div>
               <p className="text-gray-600 font-medium">{horse.genetics.bloodline}</p>
               <p className="text-sm text-gray-500">Generation {horse.genetics.generation}</p>
             </div>
@@ -196,13 +200,13 @@ const HorseCard: React.FC<HorseCardProps> = ({
                 <Trophy className="w-5 h-5 text-blue-600" />
               </div>
               <p className="text-lg font-bold text-gray-800">{horse.stats.wins}</p>
-              <p className="text-xs text-gray-600">Wins</p>
+              <p className="text-xs text-gray-600 wins-count">Wins</p>
             </div>
             <div className="text-center">
               <div className="flex items-center justify-center w-10 h-10 bg-green-100 rounded-lg mb-2 mx-auto">
                 <TrendingUp className="w-5 h-5 text-green-600" />
               </div>
-              <p className="text-lg font-bold text-gray-800">{winRate.toFixed(1)}%</p>
+              <p className="text-lg font-bold text-gray-800 win-rate">{winRate.toFixed(1)}%</p>
               <p className="text-xs text-gray-600">Win Rate</p>
             </div>
             <div className="text-center">
@@ -254,7 +258,7 @@ const HorseCard: React.FC<HorseCardProps> = ({
         {showActions && (
           <div className="flex gap-3">
             <motion.button
-              onClick={onSelect}
+              onClick={() => onSelect && onSelect(horse.id)}
               className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg font-semibold transition-colors view-details-btn"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
@@ -266,16 +270,14 @@ const HorseCard: React.FC<HorseCardProps> = ({
               <motion.button
                 className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-lg font-semibold transition-colors"
                 whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
+                whileTap={{ scale: 0.98 }}>
                 Buy Now
               </motion.button>
             ) : (
               <motion.button
                 className="flex-1 bg-purple-500 hover:bg-purple-600 text-white py-2 px-4 rounded-lg font-semibold transition-colors"
                 whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
+                whileTap={{ scale: 0.98 }}>
                 Enter Race
               </motion.button>
             )}
