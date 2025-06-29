@@ -296,7 +296,7 @@ const PredictiveAnalytics: React.FC = () => {
                   <div>
                     <h4 className="font-semibold text-gray-800 mb-4">Win Probabilities</h4>
                     <div className="space-y-3">
-                      {raceAnalysis.predictions.slice(0, 5).map((pred, index) => {
+                      {(raceAnalysis.predictions || []).slice(0, 5).map((pred, index) => {
                         const horse = horses.find(h => h.id === pred.horseId);
                         return (
                           <div key={pred.horseId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -331,7 +331,7 @@ const PredictiveAnalytics: React.FC = () => {
                   <div>
                     <h4 className="font-semibold text-gray-800 mb-4">Key Analysis Points</h4>
                     <div className="space-y-3">
-                      {raceAnalysis.keyFactors.map((factor, index) => (
+                      {(raceAnalysis.keyFactors || []).map((factor, index) => (
                         <div key={index} className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
                           <Target className="w-5 h-5 text-blue-600 mt-0.5" />
                           <p className="text-sm text-gray-700">{factor}</p>
@@ -343,7 +343,7 @@ const PredictiveAnalytics: React.FC = () => {
                           <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5" />
                           <div>
                             <p className="font-semibold text-yellow-800 text-sm">Weather Impact</p>
-                            <p className="text-sm text-yellow-700">{raceAnalysis.weatherImpact}</p>
+                            <p className="text-sm text-yellow-700">{raceAnalysis.weatherImpact || 'Analyzing weather conditions...'}</p>
                           </div>
                         </div>
                       </div>
@@ -353,7 +353,7 @@ const PredictiveAnalytics: React.FC = () => {
 
                 <div className="bg-indigo-50 rounded-xl p-4 border border-indigo-200">
                   <h4 className="font-semibold text-indigo-800 mb-2">Race Narrative</h4>
-                  <p className="text-indigo-700 leading-relaxed">{raceAnalysis.raceNarrative}</p>
+                  <p className="text-indigo-700 leading-relaxed">{raceAnalysis.raceNarrative || 'Generating race analysis...'}</p>
                 </div>
               </div>
             ) : (
@@ -430,7 +430,7 @@ const PredictiveAnalytics: React.FC = () => {
                     
                     <div className="mt-3">
                       <p className="text-xs text-gray-600 mb-1">Key Factors:</p>
-                      {pred.factors.slice(0, 2).map((factor, index) => (
+                      {(pred.factors || []).slice(0, 2).map((factor, index) => (
                         <p key={index} className="text-xs text-gray-500">• {factor}</p>
                       ))}
                     </div>
