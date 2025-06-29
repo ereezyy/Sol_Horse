@@ -38,6 +38,7 @@ const Navigation: React.FC = () => {
     { id: 'quests', label: 'Daily Quests', icon: Target, color: 'green' },
     { id: 'achievements', label: 'Achievements', icon: Medal, color: 'yellow' },
     { id: 'events', label: 'Seasonal Events', icon: Calendar, color: 'indigo' },
+    { id: 'rewards', label: 'Daily Rewards', icon: Gift, color: 'amber' },
     { id: 'analytics', label: 'Analytics', icon: BarChart3, color: 'cyan' },
     { id: 'ai-analytics', label: 'AI Analytics', icon: Brain, color: 'purple' },
     { id: 'marketplace', label: 'Marketplace', icon: ShoppingCart, color: 'orange' },

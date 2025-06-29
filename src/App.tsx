@@ -19,6 +19,7 @@ import AchievementSystem from './components/AchievementSystem';
 import SeasonalEvents from './components/SeasonalEvents';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
 import PlayerProfile from './components/PlayerProfile';
+import DailyRewards from './components/DailyRewards';
 import { HorseNFT, Race, Player } from './types';
 
 // Mock data generator
@@ -182,8 +183,28 @@ function App() {
     activeRaces, 
     upcomingRaces,
     addHorse,
-    addRace
+    addRace,
+    addNotification
   } = useGameStore();
+
+  // Initialize daily check-in reminder
+  useEffect(() => {
+    const lastCheckIn = player?.stats?.lastCheckIn;
+    const now = Date.now();
+    const oneDayMs = 24 * 60 * 60 * 1000;
+    
+    // If player hasn't checked in today and has preferences for reminders
+    if (player && player.preferences.dailyCheckInReminder && (!lastCheckIn || now - lastCheckIn > oneDayMs)) {
+      addNotification({
+        id: `daily-checkin-${Date.now()}`,
+        type: 'quest_complete',
+        title: 'Daily Check-In Available!',
+        message: 'Don\'t forget to claim your daily rewards and maintain your streak!',
+        timestamp: Date.now(),
+        read: false
+      });
+    }
+  }, [player]);
 
   // Initialize mock data
   useEffect(() => {
@@ -232,6 +253,8 @@ function App() {
         return <SeasonalEvents />;
       case 'analytics':
         return <AnalyticsDashboard />;
+      case 'rewards':
+        return <DailyRewards />;
       case 'marketplace':
         return <Marketplace />;
       case 'profile':
