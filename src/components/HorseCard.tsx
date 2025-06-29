@@ -134,7 +134,6 @@ const HorseCard: React.FC<HorseCardProps> = ({
                   <p className="text-lg font-bold text-gray-800 win-rate">{winRate.toFixed(1)}%</p>
                   {horse.genetics.rarity}
                 </div>
-              </div>
               <p className="text-gray-600 font-medium">{horse.genetics.bloodline}</p>
               <p className="text-sm text-gray-500">Generation {horse.genetics.generation}</p>
             </div>
