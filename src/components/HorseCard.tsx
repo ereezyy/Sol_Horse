@@ -94,6 +94,7 @@ const HorseCard: React.FC<HorseCardProps> = ({
               <div className={`px-2 py-1 rounded-full text-xs font-bold text-white bg-gradient-to-r ${getRarityColor(horse.genetics.rarity)}`}>
                 {horse.genetics.rarity}
               </div>
+            </div>
             <h4 className="font-semibold text-gray-800" data-testid="horse-name">{horse.name}</h4>
             <p className="text-sm text-gray-600">{horse.genetics.bloodline}</p>
           </div>
