@@ -17,7 +17,8 @@ import {
   Award,
   Sparkles,
   Lock,
-  Unlock
+  Unlock,
+  Eye
 } from 'lucide-react';
 import { useGameStore } from '../store/gameStore';
 
