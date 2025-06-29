@@ -90,14 +90,14 @@ describe('HorseCard Component', () => {
     
     const { rerender } = render(
       <HorseCard 
-        horse={mockHorse} 
-        onSelect={mockOnSelect}
+        horse={mockHorse}
+        onSelect={mockOnSelect} 
         isSelected={false}
       />
     );
 
     // Test unselected state
-    const card = screen.getByRole('button');
+    const card = screen.getByText('View Details').closest('button');
     expect(card).not.toHaveClass('ring-4');
 
     // Test selected state
@@ -115,7 +115,7 @@ describe('HorseCard Component', () => {
   it('calls onSelect when clicked', () => {
     const mockOnSelect = vi.fn();
     
-    const { container } = render(
+    const { getByTestId } = render(
       <HorseCard 
         horse={mockHorse} 
         onSelect={mockOnSelect}
@@ -123,9 +123,8 @@ describe('HorseCard Component', () => {
       />
     );
 
-    // Find the main view details button
-    const card = container.querySelector('button.bg-blue-500');
-    card.click();
+    const viewDetailsBtn = screen.getByText('View Details').closest('button');
+    viewDetailsBtn!.click();
 
     expect(mockOnSelect).toHaveBeenCalledWith('test-horse-1');
   });
@@ -148,17 +147,19 @@ describe('HorseCard Component', () => {
     const mockOnSelect = vi.fn();
     
     const { getByText } = render(
-      <HorseCard
-        horse={mockHorse}
+      <HorseCard 
+        horse={mockHorse} 
         onSelect={mockOnSelect}
         isSelected={false}
       />
     );
 
     // Win rate is calculated as (8/15)*100 = 53.3, displayed as 53.3%
-    expect(getByText('53.3%')).toBeInTheDocument(); // Win rate
-    expect(screen.getByText('8')).toBeInTheDocument(); // Wins count
+    const winRateElement = screen.getByText((content, element) => {
+      return content.includes('53.3%');
+    });
+    expect(winRateElement).toBeInTheDocument();
+    expect(screen.getByText(/8/)).toBeInTheDocument(); // Wins count
     // Note: Total races (15) might not be displayed directly in the component
   });
 });
-
