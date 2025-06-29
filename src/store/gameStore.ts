@@ -1,5 +1,9 @@
 import { create } from 'zustand';
 import { HorseNFT, Player, Race, Bet, GameState, Tournament, TournamentEntry } from '../types';
+import playerService from '../services/playerService';
+import horseService from '../services/horseService';
+import raceService from '../services/raceService';
+import tournamentService from '../services/tournamentService';
 
 interface GameStore extends GameState {
   // Actions
@@ -14,12 +18,18 @@ interface GameStore extends GameState {
   addNotification: (notification: any) => void;
   markNotificationRead: (notificationId: string) => void;
   performDailyCheckIn: () => boolean;
-  getCheckInStatus: () => { canClaim: boolean; timeUntilNext: number; streak: number };
+  getCheckInStatus: () => { canClaim: boolean; timeUntilNext: number; streak: number; };
   
   // Tournament actions
   addTournament: (tournament: Tournament) => void;
   joinTournament: (tournamentId: string, entry: TournamentEntry) => void;
   updateTournament: (tournamentId: string, updates: Partial<Tournament>) => void;
+  
+  // Data fetching actions
+  fetchPlayerData: (walletAddress: string) => Promise<void>;
+  fetchHorses: () => Promise<void>;
+  fetchRaces: () => Promise<void>;
+  fetchTournaments: () => Promise<void>;
   
   initializeGame: () => void;
 }
@@ -145,48 +155,86 @@ export const useGameStore = create<GameStore>((set, get) => ({
   // Actions
   setPlayer: (player) => set({ player }),
   
-  addHorse: (horse) => set((state) => ({
-    horses: [...state.horses, horse]
-  })),
+  addHorse: async (horse) => {
+    // Add to database first
+    if (get().player) {
+      await horseService.addHorse(horse);
+    }
+    
+    set((state) => ({
+      horses: [...state.horses, horse]
+    }));
+  },
   
-  updateHorse: (horseId, updates) => set((state) => ({
-    horses: state.horses.map(horse => 
-      horse.id === horseId ? { ...horse, ...updates } : horse
-    )
-  })),
+  updateHorse: async (horseId, updates) => {
+    // Update in database first
+    if (get().player) {
+      await horseService.updateHorse(horseId, updates);
+    }
+    
+    set((state) => ({
+      horses: state.horses.map(horse => 
+        horse.id === horseId ? { ...horse, ...updates } : horse
+      )
+    }));
+  },
   
   selectHorse: (horseId) => set({ selectedHorse: horseId }),
   
   setCurrentView: (view) => set({ currentView: view }),
   
-  addRace: (race) => set((state) => ({
-    upcomingRaces: [...state.upcomingRaces, race]
-  })),
+  addRace: async (race) => {
+    // Add to database first
+    if (get().player) {
+      await raceService.addRace(race);
+    }
+    
+    set((state) => ({
+      upcomingRaces: [...state.upcomingRaces, race]
+    }));
+  },
   
-  placeBet: (bet) => {
+  placeBet: async (bet) => {
     const { player } = get();
+    
     if (player && player.assets.turfBalance >= bet.amount) {
+      // Place bet in database
+      const success = await raceService.placeBet(bet);
+      
+      if (success) {
+        // Update local state
+        set((state) => ({
+          player: state.player ? {
+            ...state.player,
+            assets: {
+              ...state.player.assets,
+              turfBalance: state.player.assets.turfBalance - bet.amount
+            }
+          } : null
+        }));
+      }
+    }
+  },
+  
+  updatePlayerBalance: async (amount) => {
+    const { player } = get();
+    
+    if (player) {
+      // Update balance in database
+      await playerService.updatePlayerBalance(player.id, amount);
+      
+      // Update local state
       set((state) => ({
         player: state.player ? {
           ...state.player,
           assets: {
             ...state.player.assets,
-            turfBalance: state.player.assets.turfBalance - bet.amount
+            turfBalance: Math.max(0, state.player.assets.turfBalance + amount)
           }
         } : null
       }));
     }
   },
-  
-  updatePlayerBalance: (amount) => set((state) => ({
-    player: state.player ? {
-      ...state.player,
-      assets: {
-        ...state.player.assets,
-        turfBalance: Math.max(0, state.player.assets.turfBalance + amount)
-      }
-    } : null
-  })),
   
   addNotification: (notification) => set((state) => ({
     notifications: [notification, ...state.notifications.slice(0, 9)] // Keep last 10
@@ -272,27 +320,114 @@ export const useGameStore = create<GameStore>((set, get) => ({
     )
   })),
 
-  // Tournament actions
-  addTournament: (tournament) => set((state) => ({
-    tournaments: [...state.tournaments, tournament]
-  })),
+  // Tournament actions  
+  addTournament: async (tournament) => {
+    // Add to database first
+    if (get().player) {
+      await tournamentService.addTournament(tournament);
+    }
+    
+    set((state) => ({
+      tournaments: [...state.tournaments, tournament]
+    }));
+  },
   
-  joinTournament: (tournamentId, entry) => set((state) => ({
-    tournaments: state.tournaments.map(tournament =>
-      tournament.id === tournamentId
-        ? { ...tournament, participants: [...tournament.participants, entry] }
-        : tournament
-    )
-  })),
+  joinTournament: async (tournamentId, entry) => {
+    // Join in database first
+    if (get().player) {
+      await tournamentService.joinTournament(tournamentId, entry);
+    }
+    
+    set((state) => ({
+      tournaments: state.tournaments.map(tournament =>
+        tournament.id === tournamentId
+          ? { ...tournament, participants: [...tournament.participants, entry] }
+          : tournament
+      )
+    }));
+  },
   
-  updateTournament: (tournamentId, updates) => set((state) => ({
-    tournaments: state.tournaments.map(tournament =>
-      tournament.id === tournamentId ? { ...tournament, ...updates } : tournament
-    )
-  })),
+  updateTournament: async (tournamentId, updates) => {
+    // Update in database first
+    if (get().player) {
+      await tournamentService.updateTournament(tournamentId, updates);
+    }
+    
+    set((state) => ({
+      tournaments: state.tournaments.map(tournament =>
+        tournament.id === tournamentId ? { ...tournament, ...updates } : tournament
+      )
+    }));
+  },
 
-  initializeGame: () => {
-    const mockPlayer = createMockPlayer();
-    set({ player: mockPlayer });
+  // Data fetching actions
+  fetchPlayerData: async (walletAddress: string) => {
+    try {
+      const player = await playerService.getPlayerByWallet(walletAddress);
+      if (player) {
+        set({ player });
+      }
+    } catch (error) {
+      console.error('Error fetching player data:', error);
+    }
+  },
+
+  fetchHorses: async () => {
+    const { player } = get();
+    if (!player) return;
+
+    try {
+      // Fetch owned horses
+      const playerHorses = await horseService.getPlayerHorses(player.walletAddress);
+      
+      // Fetch marketplace horses
+      const marketplaceHorses = await horseService.getHorsesForSale();
+      
+      // Combine and deduplicate
+      const allHorses = [...playerHorses];
+      
+      for (const horse of marketplaceHorses) {
+        if (!allHorses.some(h => h.id === horse.id)) {
+          allHorses.push(horse);
+        }
+      }
+      
+      set({ horses: allHorses });
+    } catch (error) {
+      console.error('Error fetching horses:', error);
+    }
+  },
+
+  fetchRaces: async () => {
+    try {
+      const races = await raceService.getUpcomingRaces();
+      set({ upcomingRaces: races });
+    } catch (error) {
+      console.error('Error fetching races:', error);
+    }
+  },
+
+  fetchTournaments: async () => {
+    try {
+      const tournaments = await tournamentService.getTournaments();
+      set({ tournaments });
+    } catch (error) {
+      console.error('Error fetching tournaments:', error);
+    }
+  },
+
+  initializeGame: async () => {
+    try {
+      await get().fetchRaces();
+      await get().fetchTournaments();
+      
+      // If player is connected, fetch their data
+      const { player } = get();
+      if (player) {
+        await get().fetchHorses();
+      }
+    } catch (error) {
+      console.error('Error initializing game:', error);
+    }
   }
 }));
