@@ -13,6 +13,8 @@ interface GameStore extends GameState {
   updatePlayerBalance: (amount: number) => void;
   addNotification: (notification: any) => void;
   markNotificationRead: (notificationId: string) => void;
+  performDailyCheckIn: () => boolean;
+  getCheckInStatus: () => { canClaim: boolean; timeUntilNext: number; streak: number };
   
   // Tournament actions
   addTournament: (tournament: Tournament) => void;
@@ -73,6 +75,8 @@ const createMockPlayer = (): Player => ({
     totalSpent: 75000,         // Smart spending
     netProfit: 50000,          // Profitable operation
     reputation: 350,           // High reputation
+    lastCheckIn: null,         // No check-in yet
+    consecutiveCheckIns: 0,    // Start with no streak
     achievements: [
       {
         id: '1',
@@ -121,6 +125,7 @@ const createMockPlayer = (): Player => ({
     notifications: true,
     publicProfile: true,
     allowBreedingRequests: true
+    dailyCheckInReminder: true,
   }
 });
 
@@ -186,6 +191,80 @@ export const useGameStore = create<GameStore>((set, get) => ({
   addNotification: (notification) => set((state) => ({
     notifications: [notification, ...state.notifications.slice(0, 9)] // Keep last 10
   })),
+  
+  performDailyCheckIn: () => {
+    const { player, addNotification } = get();
+    if (!player) return false;
+
+    const now = Date.now();
+    const lastCheckIn = player.stats.lastCheckIn || 0;
+    const oneDayMs = 24 * 60 * 60 * 1000;
+
+    // Check if 24 hours have passed since last check-in
+    const canClaimReward = !player.stats.lastCheckIn || (now - lastCheckIn > oneDayMs);
+    
+    if (!canClaimReward) return false;
+
+    // Check if streak continues or resets
+    const isStreakContinuing = player.stats.lastCheckIn && (now - lastCheckIn < oneDayMs * 2);
+    const newStreak = isStreakContinuing ? player.stats.consecutiveCheckIns + 1 : 1;
+    
+    // Calculate bonus based on streak
+    const streakBonus = Math.min(1000, newStreak * 100); // 100 bonus per day up to 1000
+    const totalReward = 1000 + streakBonus;
+
+    // Update player
+    set((state) => ({
+      player: state.player ? {
+        ...state.player,
+        stats: {
+          ...state.player.stats,
+          lastCheckIn: now,
+          consecutiveCheckIns: newStreak
+        },
+        assets: {
+          ...state.player.assets,
+          turfBalance: state.player.assets.turfBalance + totalReward
+        }
+      } : null
+    }));
+
+    // Add notification
+    addNotification({
+      id: Date.now().toString(),
+      type: 'quest_complete',
+      title: 'Daily Check-In Reward!',
+      message: `Claimed ${totalReward} $TURF! (${newStreak} day streak: +${streakBonus} bonus)`,
+      timestamp: now,
+      read: false
+    });
+
+    return true;
+  },
+  
+  getCheckInStatus: () => {
+    const { player } = get();
+    if (!player || !player.stats.lastCheckIn) {
+      return { canClaim: true, timeUntilNext: 0, streak: 0 };
+    }
+
+    const now = Date.now();
+    const lastCheckIn = player.stats.lastCheckIn;
+    const oneDayMs = 24 * 60 * 60 * 1000;
+    
+    // Can claim if 24 hours have passed
+    const timeSinceLastCheckIn = now - lastCheckIn;
+    const canClaim = timeSinceLastCheckIn > oneDayMs;
+    
+    // Time until next claim
+    const timeUntilNext = Math.max(0, oneDayMs - timeSinceLastCheckIn);
+    
+    return { 
+      canClaim, 
+      timeUntilNext,
+      streak: player.stats.consecutiveCheckIns 
+    };
+  },
   
   markNotificationRead: (notificationId) => set((state) => ({
     notifications: state.notifications.map(notif =>

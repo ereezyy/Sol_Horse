@@ -198,6 +198,8 @@ export interface Player {
     netProfit: number;
     reputation: number;
     achievements: Achievement[];
+    lastCheckIn: number | null;
+    consecutiveCheckIns: number;
   };
   
   // Social
@@ -213,6 +215,7 @@ export interface Player {
     notifications: boolean;
     publicProfile: boolean;
     allowBreedingRequests: boolean;
+    dailyCheckInReminder: boolean;
   };
 }
 

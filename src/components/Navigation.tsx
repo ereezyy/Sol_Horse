@@ -18,10 +18,11 @@ import {
   Calendar,
   BarChart3,
   Gift,
-  Medal,
+  Medal, 
   Brain
 } from 'lucide-react';
 import { useGameStore } from '../store/gameStore';
+import DailyCheckIn from './DailyCheckIn';
 
 const Navigation: React.FC = () => {
   const { currentView, setCurrentView, player, notifications } = useGameStore();
@@ -66,6 +67,8 @@ const Navigation: React.FC = () => {
           <div className="flex items-center gap-4">
             {/* Balance */}
             <div className="flex items-center gap-3 bg-gradient-to-r from-emerald-50 to-blue-50 px-4 py-2 rounded-xl">
+              <DailyCheckIn />
+              <div className="w-px h-4 bg-gray-300" />
               <div className="flex items-center gap-2">
                 <Zap className="w-4 h-4 text-emerald-600" />
                 <span className="font-semibold text-emerald-700">
