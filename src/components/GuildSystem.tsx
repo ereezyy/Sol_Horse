@@ -22,7 +22,8 @@ import {
   Clock,
   Globe,
   Search,
-  Filter
+  Filter,
+  Home
 } from 'lucide-react';
 import { useGameStore } from '../store/gameStore';
 import { Guild, GuildMember } from '../types';
