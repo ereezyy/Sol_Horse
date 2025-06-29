@@ -131,7 +131,7 @@ const HorseCard: React.FC<HorseCardProps> = ({
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <h2 className="text-xl font-bold text-gray-800">{horse.name}</h2>
-                <div className={`px-3 py-1 rounded-full text-xs font-bold text-white bg-gradient-to-r ${getRarityColor(horse.genetics.rarity)}`}>
+                  <p className="text-lg font-bold text-gray-800 win-rate">{winRate.toFixed(1)}%</p>
                   {horse.genetics.rarity}
                 </div>
               </div>
@@ -256,7 +256,7 @@ const HorseCard: React.FC<HorseCardProps> = ({
           <div className="flex gap-3">
             <motion.button
               onClick={onSelect}
-              className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg font-semibold transition-colors"
+              className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg font-semibold transition-colors view-details-btn"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
