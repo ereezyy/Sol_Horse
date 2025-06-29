@@ -391,7 +391,7 @@ export interface GameState {
   
   // UI state
   selectedHorse: string | null;
-  currentView: 'stable' | 'racing' | 'breeding' | 'marketplace' | 'profile' | 'guild' | 'training' | 'tournaments' | 'quests' | 'achievements' | 'events' | 'analytics';
+  currentView: 'stable' | 'racing' | 'breeding' | 'marketplace' | 'profile' | 'guild' | 'training' | 'tournaments' | 'quests' | 'achievements' | 'events' | 'analytics' | 'ai-analytics';
   notifications: Notification[];
 }
 

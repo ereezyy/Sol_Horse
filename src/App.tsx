@@ -12,6 +12,8 @@ import TournamentCenter from './components/TournamentCenter';
 import TournamentSystem from './components/TournamentSystem';
 import Marketplace from './components/Marketplace';
 import GuildSystem from './components/GuildSystem';
+import AIAssistant from './components/AIAssistant';
+import PredictiveAnalytics from './components/PredictiveAnalytics';
 import DailyQuests from './components/DailyQuests';
 import AchievementSystem from './components/AchievementSystem';
 import SeasonalEvents from './components/SeasonalEvents';
@@ -236,6 +238,8 @@ function App() {
         return <PlayerProfile />;
       case 'guild':
         return <GuildSystem />;
+      case 'ai-analytics':
+        return <PredictiveAnalytics />;
       default:
         return <StableView horses={playerHorses} />;
     }
@@ -257,6 +261,9 @@ function App() {
             {renderCurrentView()}
           </motion.div>
         </AnimatePresence>
+        
+        {/* AI Assistant - Always Available */}
+        <AIAssistant />
       </main>
     </div>
   );

@@ -18,7 +18,8 @@ import {
   Calendar,
   BarChart3,
   Gift,
-  Medal
+  Medal,
+  Brain
 } from 'lucide-react';
 import { useGameStore } from '../store/gameStore';
 
@@ -37,6 +38,7 @@ const Navigation: React.FC = () => {
     { id: 'achievements', label: 'Achievements', icon: Medal, color: 'yellow' },
     { id: 'events', label: 'Seasonal Events', icon: Calendar, color: 'indigo' },
     { id: 'analytics', label: 'Analytics', icon: BarChart3, color: 'cyan' },
+    { id: 'ai-analytics', label: 'AI Analytics', icon: Brain, color: 'purple' },
     { id: 'marketplace', label: 'Marketplace', icon: ShoppingCart, color: 'orange' },
     { id: 'guild', label: 'Guilds', icon: Users, color: 'violet' },
     { id: 'profile', label: 'Profile', icon: User, color: 'gray' }
