@@ -130,10 +130,10 @@ const HorseCard: React.FC<HorseCardProps> = ({
             {/* Basic Info */}
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <h2 className="text-xl font-bold text-gray-800">{horse.name}</h2>
-                  <p className="text-lg font-bold text-gray-800 win-rate">{winRate.toFixed(1)}%</p>
+                <div className={`px-3 py-1 rounded-full text-xs font-bold text-white bg-gradient-to-r ${getRarityColor(horse.genetics.rarity)}`}>
                   {horse.genetics.rarity}
                 </div>
+                <p className="text-lg font-bold text-gray-800 win-rate">{winRate.toFixed(1)}%</p>
               <p className="text-gray-600 font-medium">{horse.genetics.bloodline}</p>
               <p className="text-sm text-gray-500">Generation {horse.genetics.generation}</p>
             </div>
