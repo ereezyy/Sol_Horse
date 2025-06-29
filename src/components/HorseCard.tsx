@@ -3,14 +3,14 @@ import { motion, MotionProps } from 'framer-motion';
 import { 
   Star, 
   Zap, 
-  Heart, 
-  Target, 
-  Brain, 
-  Shield,
-  Trophy,
-  TrendingUp,
-  Calendar,
-  DollarSign
+  Heart,
+  Target,
+  Brain,
+  Shield, 
+  Trophy, 
+  TrendingUp, 
+  Calendar, 
+  DollarSign 
 } from 'lucide-react';
 import { HorseNFT } from '../types';
 
@@ -81,7 +81,7 @@ const HorseCard: React.FC<HorseCardProps> = ({
       >
         <div className="flex items-center gap-3">
           {/* Horse Avatar */}
-          <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${getCoatColorStyle(horse.genetics.coatColor)} flex items-center justify-center`}>
+          <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${getCoatColorStyle(horse.genetics.coatColor)} flex items-center justify-center text-white font-bold`}>
             <span className="text-white font-bold text-lg">
               {horse.name.charAt(0)}
             </span>
@@ -94,13 +94,13 @@ const HorseCard: React.FC<HorseCardProps> = ({
               <div className={`px-2 py-1 rounded-full text-xs font-bold text-white bg-gradient-to-r ${getRarityColor(horse.genetics.rarity)}`}>
                 {horse.genetics.rarity}
               </div>
-            </div>
+            <h4 className="font-semibold text-gray-800" data-testid="horse-name">{horse.name}</h4>
             <p className="text-sm text-gray-600">{horse.genetics.bloodline}</p>
           </div>
 
           {/* Quick Stats */}
           <div className="text-right">
-            <p className="text-sm font-semibold text-gray-800">{horse.stats.wins}W/{horse.stats.races}R</p>
+            <p className="text-sm font-semibold text-gray-800" data-testid="horse-record">{horse.stats.wins}W/{horse.stats.races}R</p>
             <p className="text-xs text-gray-600">{winRate.toFixed(1)}% WR</p>
           </div>
         </div>
@@ -133,6 +133,7 @@ const HorseCard: React.FC<HorseCardProps> = ({
             {/* Basic Info */}
             <div>
               <div className="flex items-center gap-2 mb-1">
+                <h2 className="text-xl font-bold text-gray-800">{horse.name}</h2>
                 <div className={`px-3 py-1 rounded-full text-xs font-bold text-white bg-gradient-to-r ${getRarityColor(horse.genetics.rarity)}`}>
                   {horse.genetics.rarity}
                 </div>
