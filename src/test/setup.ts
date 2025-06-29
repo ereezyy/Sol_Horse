@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom';
+import { vi } from 'vitest';
 
 // Mock Solana wallet adapter
 const mockWallet = {
@@ -28,8 +29,8 @@ vi.mock('@solana/wallet-adapter-react', () => ({
 // Mock framer-motion
 vi.mock('framer-motion', () => ({
   motion: {
-    div: 'div',
-    button: 'button',
+    div: ({ children, ...props }) => <div {...props}>{children}</div>,
+    button: ({ children, ...props }) => <button type="button" {...props}>{children}</button>,
     span: 'span',
     h1: 'h1',
     h2: 'h2',
@@ -38,6 +39,13 @@ vi.mock('framer-motion', () => ({
     img: 'img',
   },
   AnimatePresence: ({ children }: { children: React.ReactNode }) => children,
+  useAnimationControls: () => ({
+    start: vi.fn(),
+    stop: vi.fn(),
+    set: vi.fn(),
+  }),
+  useInView: () => true,
+  useScroll: () => ({ scrollYProgress: { get: () => 0, onChange: vi.fn() } }),
 }));
 
 // Mock zustand store
@@ -45,12 +53,14 @@ vi.mock('../store/gameStore', () => ({
   useGameStore: () => ({
     horses: [],
     currentRace: null,
-    player: {
+    player: { 
       id: 'test-player',
       username: 'TestPlayer',
-      balance: 1000,
-      experience: 0,
-      level: 1,
+      walletAddress: 'test-wallet',
+      profile: { avatar: '', bio: '', country: '', joinDate: 0, stableName: 'Test Stables' },
+      assets: { turfBalance: 1000, solBalance: 1, horses: [] },
+      stats: { wins: 0, totalRaces: 0, experience: 0 },
+      social: { followers: 0 },
     },
     setHorses: vi.fn(),
     setCurrentRace: vi.fn(),
@@ -79,4 +89,3 @@ Object.defineProperty(window, 'matchMedia', {
     dispatchEvent: vi.fn(),
   })),
 });
-
