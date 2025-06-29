@@ -124,7 +124,7 @@ const createMockPlayer = (): Player => ({
   preferences: {
     notifications: true,
     publicProfile: true,
-    allowBreedingRequests: true
+    allowBreedingRequests: true,
     dailyCheckInReminder: true,
   }
 });
