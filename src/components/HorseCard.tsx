@@ -73,11 +73,18 @@ const HorseCard: React.FC<HorseCardProps> = ({
 
   if (compact) {
     return (
-      <motion.button
-        type="button"
+      <motion.div
+        role="button"
+        tabIndex={0}
         className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 cursor-pointer"
         whileHover={{ y: -2, shadow: "0 10px 25px rgba(0,0,0,0.1)" }}
         onClick={() => onSelect && onSelect(horse.id)}
+        onKeyDown={(e) => {
+          if ((e.key === 'Enter' || e.key === ' ') && onSelect) {
+            e.preventDefault();
+            onSelect(horse.id);
+          }
+        }}
       >
         <div className="flex items-center gap-3">
           {/* Horse Avatar */}
@@ -105,7 +112,7 @@ const HorseCard: React.FC<HorseCardProps> = ({
             <p className="text-xs text-gray-600">{winRate.toFixed(1)}% WR</p>
           </div>
         </div>
-      </motion.button>
+      </motion.div>
     );
   }
 
