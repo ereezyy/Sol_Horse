@@ -9,7 +9,7 @@ export const playerService = {
     const { data, error } = await supabase
       .from('players')
       .select('*')
-      .eq('walletAddress', walletAddress)
+      .eq('walletaddress', walletAddress)
       .single();
 
     if (error) {
@@ -21,13 +21,13 @@ export const playerService = {
 
     return {
       id: data.id,
-      walletAddress: data.walletAddress,
+      walletAddress: data.walletaddress,
       username: data.username,
-      profile: data.profileData as any,
-      assets: data.assetsData as any,
-      stats: data.statsData as any,
-      social: data.socialData as any,
-      preferences: data.preferencesData as any
+      profile: data.profiledata as any,
+      assets: data.assetsdata as any,
+      stats: data.statsdata as any,
+      social: data.socialdata as any,
+      preferences: data.preferencesdata as any
     };
   },
 
@@ -37,15 +37,15 @@ export const playerService = {
   async createPlayer(player: Player): Promise<Player | null> {
     const { data, error } = await supabase.from('players').insert({
       id: player.id,
-      walletAddress: player.walletAddress,
+      walletaddress: player.walletAddress,
       username: player.username,
-      profileData: player.profile,
-      assetsData: player.assets,
-      statsData: player.stats,
-      socialData: player.social,
-      preferencesData: player.preferences,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      profiledata: player.profile,
+      assetsdata: player.assets,
+      statsdata: player.stats,
+      socialdata: player.social,
+      preferencesdata: player.preferences,
+      createdat: new Date().toISOString(),
+      updatedat: new Date().toISOString()
     }).select().single();
 
     if (error) {
@@ -64,12 +64,12 @@ export const playerService = {
       .from('players')
       .update({
         username: player.username,
-        profileData: player.profile,
-        assetsData: player.assets,
-        statsData: player.stats,
-        socialData: player.social,
-        preferencesData: player.preferences,
-        updatedAt: new Date().toISOString()
+        profiledata: player.profile,
+        assetsdata: player.assets,
+        statsdata: player.stats,
+        socialdata: player.social,
+        preferencesdata: player.preferences,
+        updatedat: new Date().toISOString()
       })
       .eq('id', player.id)
       .select()
@@ -89,7 +89,7 @@ export const playerService = {
   async updatePlayerBalance(playerId: string, amount: number): Promise<boolean> {
     const { data: playerData, error: fetchError } = await supabase
       .from('players')
-      .select('assetsData')
+      .select('assetsdata')
       .eq('id', playerId)
       .single();
 
@@ -98,14 +98,14 @@ export const playerService = {
       return false;
     }
 
-    const assets = playerData.assetsData as any;
+    const assets = playerData.assetsdata as any;
     assets.turfBalance = Math.max(0, (assets.turfBalance || 0) + amount);
 
     const { error: updateError } = await supabase
       .from('players')
       .update({
-        assetsData: assets,
-        updatedAt: new Date().toISOString()
+        assetsdata: assets,
+        updatedat: new Date().toISOString()
       })
       .eq('id', playerId);
 
@@ -124,7 +124,7 @@ export const playerService = {
     // First, get the current player data
     const { data: playerData, error: fetchError } = await supabase
       .from('players')
-      .select('statsData, assetsData')
+      .select('statsdata, assetsdata')
       .eq('id', playerId)
       .single();
 
@@ -133,8 +133,8 @@ export const playerService = {
       return { success: false, reward: 0 };
     }
 
-    const stats = playerData.statsData as any;
-    const assets = playerData.assetsData as any;
+    const stats = playerData.statsdata as any;
+    const assets = playerData.assetsdata as any;
     
     const now = Date.now();
     const lastCheckIn = stats.lastCheckIn || 0;
@@ -163,9 +163,9 @@ export const playerService = {
     const { error: updateError } = await supabase
       .from('players')
       .update({
-        statsData: stats,
-        assetsData: assets,
-        updatedAt: new Date().toISOString()
+        statsdata: stats,
+        assetsdata: assets,
+        updatedat: new Date().toISOString()
       })
       .eq('id', playerId);
 
@@ -184,8 +184,8 @@ export const playerService = {
       description: `Daily check-in reward (${newStreak} day streak)`,
       timestamp: new Date().toISOString(),
       status: 'completed',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      createdat: new Date().toISOString(),
+      updatedat: new Date().toISOString()
     });
 
     return { success: true, reward: totalReward };

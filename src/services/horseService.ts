@@ -20,17 +20,17 @@ export const horseService = {
       id: horse.id,
       tokenId: horse.tokenId,
       name: horse.name,
-      genetics: horse.geneticsData as any,
-      stats: horse.statsData as any,
-      breeding: horse.breedingData as any,
-      training: horse.trainingData as any,
-      appearance: horse.appearanceData as any,
-      lore: horse.loreData as any,
+      genetics: horse.geneticsdata as any,
+      stats: horse.statsdata as any,
+      breeding: horse.breedingdata as any,
+      training: horse.trainingdata as any,
+      appearance: horse.appearancedata as any,
+      lore: horse.loredata as any,
       owner: horse.owner,
-      isForSale: horse.isForSale,
+      isForSale: horse.isforsale,
       price: horse.price,
-      isForLease: horse.isForLease,
-      leaseTerms: horse.leaseTermsData as any
+      isForLease: horse.isforlease,
+      leaseTerms: horse.leasetermsdata as any
     }));
   },
 
@@ -41,7 +41,7 @@ export const horseService = {
     const { data, error } = await supabase
       .from('horses')
       .select('*')
-      .eq('isForSale', true);
+      .eq('isforsale', true);
 
     if (error) {
       console.error('Error fetching horses for sale:', error);
@@ -52,17 +52,17 @@ export const horseService = {
       id: horse.id,
       tokenId: horse.tokenId,
       name: horse.name,
-      genetics: horse.geneticsData as any,
-      stats: horse.statsData as any,
-      breeding: horse.breedingData as any,
-      training: horse.trainingData as any,
-      appearance: horse.appearanceData as any,
-      lore: horse.loreData as any,
+      genetics: horse.geneticsdata as any,
+      stats: horse.statsdata as any,
+      breeding: horse.breedingdata as any,
+      training: horse.trainingdata as any,
+      appearance: horse.appearancedata as any,
+      lore: horse.loredata as any,
       owner: horse.owner,
-      isForSale: horse.isForSale,
+      isForSale: horse.isforsale,
       price: horse.price,
-      isForLease: horse.isForLease,
-      leaseTerms: horse.leaseTermsData as any
+      isForLease: horse.isforlease,
+      leaseTerms: horse.leasetermsdata as any
     }));
   },
 
@@ -85,17 +85,17 @@ export const horseService = {
       id: data.id,
       tokenId: data.tokenId,
       name: data.name,
-      genetics: data.geneticsData as any,
-      stats: data.statsData as any,
-      breeding: data.breedingData as any,
-      training: data.trainingData as any,
-      appearance: data.appearanceData as any,
-      lore: data.loreData as any,
+      genetics: data.geneticsdata as any,
+      stats: data.statsdata as any,
+      breeding: data.breedingdata as any,
+      training: data.trainingdata as any,
+      appearance: data.appearancedata as any,
+      lore: data.loredata as any,
       owner: data.owner,
-      isForSale: data.isForSale,
+      isForSale: data.isforsale,
       price: data.price,
-      isForLease: data.isForLease,
-      leaseTerms: data.leaseTermsData as any
+      isForLease: data.isforlease,
+      leaseTerms: data.leasetermsdata as any
     };
   },
 
@@ -107,19 +107,19 @@ export const horseService = {
       id: horse.id,
       tokenId: horse.tokenId,
       name: horse.name,
-      geneticsData: horse.genetics,
-      statsData: horse.stats,
-      breedingData: horse.breeding,
-      trainingData: horse.training,
-      appearanceData: horse.appearance,
-      loreData: horse.lore,
+      geneticsdata: horse.genetics,
+      statsdata: horse.stats,
+      breedingdata: horse.breeding,
+      trainingdata: horse.training,
+      appearancedata: horse.appearance,
+      loredata: horse.lore,
       owner: horse.owner,
-      isForSale: horse.isForSale,
+      isforsale: horse.isForSale,
       price: horse.price,
-      isForLease: horse.isForLease,
-      leaseTermsData: horse.leaseTerms,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      isforlease: horse.isForLease,
+      leasetermsdata: horse.leaseTerms,
+      createdat: new Date().toISOString(),
+      updatedat: new Date().toISOString()
     }).select().single();
 
     if (error) {
@@ -134,20 +134,20 @@ export const horseService = {
    * Update a horse
    */
   async updateHorse(horseId: string, updates: Partial<HorseNFT>): Promise<boolean> {
-    const updateData: any = { updatedAt: new Date().toISOString() };
+    const updateData: any = { updatedat: new Date().toISOString() };
     
     if (updates.name) updateData.name = updates.name;
-    if (updates.genetics) updateData.geneticsData = updates.genetics;
-    if (updates.stats) updateData.statsData = updates.stats;
-    if (updates.breeding) updateData.breedingData = updates.breeding;
-    if (updates.training) updateData.trainingData = updates.training;
-    if (updates.appearance) updateData.appearanceData = updates.appearance;
-    if (updates.lore) updateData.loreData = updates.lore;
+    if (updates.genetics) updateData.geneticsdata = updates.genetics;
+    if (updates.stats) updateData.statsdata = updates.stats;
+    if (updates.breeding) updateData.breedingdata = updates.breeding;
+    if (updates.training) updateData.trainingdata = updates.training;
+    if (updates.appearance) updateData.appearancedata = updates.appearance;
+    if (updates.lore) updateData.loredata = updates.lore;
     if (updates.owner !== undefined) updateData.owner = updates.owner;
-    if (updates.isForSale !== undefined) updateData.isForSale = updates.isForSale;
+    if (updates.isForSale !== undefined) updateData.isforsale = updates.isForSale;
     if (updates.price !== undefined) updateData.price = updates.price;
-    if (updates.isForLease !== undefined) updateData.isForLease = updates.isForLease;
-    if (updates.leaseTerms) updateData.leaseTermsData = updates.leaseTerms;
+    if (updates.isForLease !== undefined) updateData.isforlease = updates.isForLease;
+    if (updates.leaseTerms) updateData.leasetermsdata = updates.leaseTerms;
 
     const { error } = await supabase
       .from('horses')
@@ -168,7 +168,7 @@ export const horseService = {
   async transferHorse(horseId: string, newOwner: string, txSignature?: string): Promise<boolean> {
     const { data: horse, error: fetchError } = await supabase
       .from('horses')
-      .select('owner, price, isForSale')
+      .select('owner, price, isforsale')
       .eq('id', horseId)
       .single();
 
@@ -181,9 +181,9 @@ export const horseService = {
       .from('horses')
       .update({
         owner: newOwner,
-        isForSale: false,
+        isforsale: false,
         price: null,
-        updatedAt: new Date().toISOString()
+        updatedat: new Date().toISOString()
       })
       .eq('id', horseId);
 
@@ -193,7 +193,7 @@ export const horseService = {
     }
 
     // Record transaction
-    if (horse.isForSale && horse.price) {
+    if (horse.isforsale && horse.price) {
       await supabase.from('transactions').insert({
         id: `horse-sale-${Date.now()}`,
         playerId: newOwner,
@@ -205,8 +205,8 @@ export const horseService = {
         timestamp: new Date().toISOString(),
         signature: txSignature || null,
         status: 'completed',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        createdat: new Date().toISOString(),
+        updatedat: new Date().toISOString()
       });
 
       await supabase.from('transactions').insert({
@@ -220,8 +220,8 @@ export const horseService = {
         timestamp: new Date().toISOString(),
         signature: txSignature || null,
         status: 'completed',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        createdat: new Date().toISOString(),
+        updatedat: new Date().toISOString()
       });
     }
 
