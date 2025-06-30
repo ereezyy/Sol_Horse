@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from './store/gameStore';
+import { checkSupabaseConnection } from './services/supabase';
 import Navigation from './components/Navigation';
 import WalletConnection from './components/WalletConnection';
 import HorseCard from './components/HorseCard';
@@ -184,7 +185,8 @@ function App() {
     upcomingRaces,
     addHorse,
     addRace,
-    addNotification
+    addNotification,
+    initializeGame
   } = useGameStore();
 
   // Initialize daily check-in reminder
@@ -205,6 +207,30 @@ function App() {
       });
     }
   }, [player]);
+
+  // Check Supabase connection
+  useEffect(() => {
+    const verifySupabaseConnection = async () => {
+      const result = await checkSupabaseConnection();
+      if (!result.success) {
+        console.warn('Supabase connection issue:', result.message);
+        // Add notification about connection issue
+        addNotification({
+          id: `supabase-connection-${Date.now()}`,
+          type: 'quest_complete',
+          title: 'Database Connection Issue',
+          message: 'Using local data mode. Some features may be limited.',
+          timestamp: Date.now(),
+          read: false
+        });
+      } else {
+        console.log('Supabase connection successful');
+      }
+    };
+
+    verifySupabaseConnection();
+    initializeGame();
+  }, []);
 
   // Initialize mock data
   useEffect(() => {
