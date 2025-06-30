@@ -10,7 +10,7 @@ export const playerService = {
       .from('players')
       .select('*')
       .eq('walletaddress', walletAddress)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Error fetching player:', error);
