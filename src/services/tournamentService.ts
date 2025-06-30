@@ -10,6 +10,7 @@ export const tournamentService = {
       .from('tournaments')
       .select('*')
       .order('tournamentStart', { ascending: true });
+      .order('tournamentstart', { ascending: true });
 
     if (error) {
       console.error('Error fetching tournaments:', error);
@@ -21,15 +22,15 @@ export const tournamentService = {
       name: t.name,
       description: t.description,
       type: t.type as any,
-      requirements: t.requirementsData as any,
-      prizePool: t.prizePool,
-      prizeDistribution: t.prizeDistribution as Record<string, number>,
-      registrationStart: new Date(t.registrationStart).getTime(),
-      registrationEnd: new Date(t.registrationEnd).getTime(),
-      tournamentStart: new Date(t.tournamentStart).getTime(),
-      tournamentEnd: new Date(t.tournamentEnd).getTime(),
-      participants: t.participantsData as TournamentEntry[],
-      brackets: t.bracketsData as TournamentBracket[] | undefined,
+      requirements: t.requirementsdata as any,
+      prizePool: t.prizepool,
+      prizeDistribution: t.prizedistribution as Record<string, number>,
+      registrationStart: new Date(t.registrationstart).getTime(),
+      registrationEnd: new Date(t.registrationend).getTime(),
+      tournamentStart: new Date(t.tournamentstart).getTime(),
+      tournamentEnd: new Date(t.tournamentend).getTime(),
+      participants: t.participantsdata as TournamentEntry[],
+      brackets: t.bracketsdata as TournamentBracket[] | undefined,
       status: t.status as any,
       category: t.category || undefined,
       tier: t.tier || undefined
@@ -45,20 +46,20 @@ export const tournamentService = {
       name: tournament.name,
       description: tournament.description,
       type: tournament.type,
-      requirementsData: tournament.requirements,
-      prizePool: tournament.prizePool,
-      prizeDistribution: tournament.prizeDistribution,
-      registrationStart: new Date(tournament.registrationStart).toISOString(),
-      registrationEnd: new Date(tournament.registrationEnd).toISOString(),
-      tournamentStart: new Date(tournament.tournamentStart).toISOString(),
-      tournamentEnd: new Date(tournament.tournamentEnd).toISOString(),
-      participantsData: tournament.participants || [],
-      bracketsData: tournament.brackets || null,
+      requirementsdata: tournament.requirements,
+      prizepool: tournament.prizePool,
+      prizedistribution: tournament.prizeDistribution,
+      registrationstart: new Date(tournament.registrationStart).toISOString(),
+      registrationend: new Date(tournament.registrationEnd).toISOString(),
+      tournamentstart: new Date(tournament.tournamentStart).toISOString(),
+      tournamentend: new Date(tournament.tournamentEnd).toISOString(),
+      participantsdata: tournament.participants || [],
+      bracketsdata: tournament.brackets || null,
       status: tournament.status,
       category: tournament.category || null,
       tier: tournament.tier || null,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      createdat: new Date().toISOString(),
+      updatedat: new Date().toISOString()
     }).select().single();
 
     if (error) {
@@ -75,7 +76,7 @@ export const tournamentService = {
   async joinTournament(tournamentId: string, entry: TournamentEntry): Promise<boolean> {
     const { data: tournament, error: fetchError } = await supabase
       .from('tournaments')
-      .select('participantsData, status, registrationEnd')
+      .select('participantsdata, status, registrationend')
       .eq('id', tournamentId)
       .single();
 
@@ -85,19 +86,19 @@ export const tournamentService = {
     }
 
     // Check if registration is still open
-    if (tournament.status !== 'Registration' || new Date(tournament.registrationEnd) < new Date()) {
+    if (tournament.status !== 'Registration' || new Date(tournament.registrationend) < new Date()) {
       console.error('Tournament registration closed');
       return false;
     }
 
     // Add entry to participants
-    const participants = [...(tournament.participantsData as TournamentEntry[]), entry];
+    const participants = [...(tournament.participantsdata as TournamentEntry[]), entry];
 
     const { error: updateError } = await supabase
       .from('tournaments')
       .update({
-        participantsData: participants,
-        updatedAt: new Date().toISOString()
+        participantsdata: participants,
+        updatedat: new Date().toISOString()
       })
       .eq('id', tournamentId);
 
@@ -113,13 +114,13 @@ export const tournamentService = {
    * Update tournament
    */
   async updateTournament(tournamentId: string, updates: Partial<Tournament>): Promise<boolean> {
-    const updateData: any = { updatedAt: new Date().toISOString() };
+    const updateData: any = { updatedat: new Date().toISOString() };
     
     if (updates.name) updateData.name = updates.name;
     if (updates.description) updateData.description = updates.description;
     if (updates.status) updateData.status = updates.status;
-    if (updates.participants) updateData.participantsData = updates.participants;
-    if (updates.brackets) updateData.bracketsData = updates.brackets;
+    if (updates.participants) updateData.participantsdata = updates.participants;
+    if (updates.brackets) updateData.bracketsdata = updates.brackets;
 
     const { error } = await supabase
       .from('tournaments')

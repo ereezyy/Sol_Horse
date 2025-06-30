@@ -12,8 +12,8 @@ export const raceService = {
     const { data, error } = await supabase
       .from('races')
       .select('*')
-      .gt('raceTime', now)
-      .order('raceTime', { ascending: true });
+      .gt('racetime', now)
+      .order('racetime', { ascending: true });
 
     if (error) {
       console.error('Error fetching upcoming races:', error);
@@ -27,16 +27,16 @@ export const raceService = {
       surface: race.surface as any,
       distance: race.distance,
       tier: race.tier as any,
-      conditions: race.conditionsData as any,
-      requirements: race.requirementsData as any,
-      entryFee: race.entryFee,
-      prizePool: race.prizePool,
-      prizeDistribution: race.prizeDistribution as number[],
-      participants: race.participantsData as RaceEntry[],
-      maxParticipants: race.maxParticipants,
-      registrationDeadline: new Date(race.registrationDeadline).getTime(),
-      raceTime: new Date(race.raceTime).getTime(),
-      results: race.resultsData as RaceResult[] | undefined,
+      conditions: race.conditionsdata as any,
+      requirements: race.requirementsdata as any,
+      entryFee: race.entryfee,
+      prizePool: race.prizepool,
+      prizeDistribution: race.prizedistribution as number[],
+      participants: race.participantsdata as RaceEntry[],
+      maxParticipants: race.maxparticipants,
+      registrationDeadline: new Date(race.registrationdeadline).getTime(),
+      raceTime: new Date(race.racetime).getTime(),
+      results: race.resultsdata as RaceResult[] | undefined,
       status: race.status as any
     }));
   },
@@ -52,19 +52,19 @@ export const raceService = {
       surface: race.surface,
       distance: race.distance,
       tier: race.tier,
-      conditionsData: race.conditions,
-      requirementsData: race.requirements,
-      entryFee: race.entryFee,
-      prizePool: race.prizePool,
-      prizeDistribution: race.prizeDistribution,
-      participantsData: race.participants || [],
-      maxParticipants: race.maxParticipants,
-      registrationDeadline: new Date(race.registrationDeadline).toISOString(),
-      raceTime: new Date(race.raceTime).toISOString(),
-      resultsData: race.results || null,
+      conditionsdata: race.conditions,
+      requirementsdata: race.requirements,
+      entryfee: race.entryFee,
+      prizepool: race.prizePool,
+      prizedistribution: race.prizeDistribution,
+      participantsdata: race.participants || [],
+      maxparticipants: race.maxParticipants,
+      registrationdeadline: new Date(race.registrationDeadline).toISOString(),
+      racetime: new Date(race.raceTime).toISOString(),
+      resultsdata: race.results || null,
       status: race.status,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      createdat: new Date().toISOString(),
+      updatedat: new Date().toISOString()
     }).select().single();
 
     if (error) {
@@ -81,7 +81,7 @@ export const raceService = {
   async enterRace(raceId: string, entry: RaceEntry): Promise<boolean> {
     const { data: race, error: fetchError } = await supabase
       .from('races')
-      .select('participantsData, status, registrationDeadline')
+      .select('participantsdata, status, registrationdeadline')
       .eq('id', raceId)
       .single();
 
@@ -91,19 +91,19 @@ export const raceService = {
     }
 
     // Check if registration is still open
-    if (race.status !== 'Registration' || new Date(race.registrationDeadline) < new Date()) {
+    if (race.status !== 'Registration' || new Date(race.registrationdeadline) < new Date()) {
       console.error('Race registration closed');
       return false;
     }
 
     // Add entry to participants
-    const participants = [...(race.participantsData as RaceEntry[]), entry];
+    const participants = [...(race.participantsdata as RaceEntry[]), entry];
 
     const { error: updateError } = await supabase
       .from('races')
       .update({
-        participantsData: participants,
-        updatedAt: new Date().toISOString()
+        participantsdata: participants,
+        updatedat: new Date().toISOString()
       })
       .eq('id', raceId);
 
@@ -122,9 +122,9 @@ export const raceService = {
     const { error } = await supabase
       .from('races')
       .update({
-        resultsData: results,
+        resultsdata: results,
         status: 'Finished',
-        updatedAt: new Date().toISOString()
+        updatedat: new Date().toISOString()
       })
       .eq('id', raceId);
 
@@ -142,16 +142,16 @@ export const raceService = {
   async placeBet(bet: Bet): Promise<boolean> {
     const { error } = await supabase.from('bets').insert({
       id: bet.id,
-      playerId: bet.playerId,
-      raceId: bet.raceId,
-      horseId: bet.horseId,
+      playerid: bet.playerId,
+      raceid: bet.raceId,
+      horseid: bet.horseId,
       type: bet.type,
       amount: bet.amount,
       odds: bet.odds,
-      potentialPayout: bet.potentialPayout,
+      potentialpayout: bet.potentialPayout,
       status: bet.status,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      createdat: new Date().toISOString(),
+      updatedat: new Date().toISOString()
     });
 
     if (error) {
@@ -162,16 +162,16 @@ export const raceService = {
     // Record transaction
     await supabase.from('transactions').insert({
       id: `bet-${Date.now()}`,
-      playerId: bet.playerId,
+      playerid: bet.playerId,
       type: 'bet_placed',
       amount: -bet.amount,
       currency: 'TURF',
-      relatedId: bet.id,
+      relatedid: bet.id,
       description: `Placed ${bet.type} bet on race ${bet.raceId}`,
       timestamp: new Date().toISOString(),
       status: 'completed',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      createdat: new Date().toISOString(),
+      updatedat: new Date().toISOString()
     });
 
     return true;
@@ -185,7 +185,7 @@ export const raceService = {
     const { data: bets, error: fetchError } = await supabase
       .from('bets')
       .select('*')
-      .eq('raceId', raceId)
+      .eq('raceid', raceId)
       .eq('status', 'Active');
 
     if (fetchError) {
@@ -204,13 +204,13 @@ export const raceService = {
       
       switch (bet.type) {
         case 'Win':
-          won = bet.horseId === winner?.horseId;
+          won = bet.horseid === winner?.horseId;
           break;
         case 'Place':
-          won = bet.horseId === winner?.horseId || bet.horseId === secondPlace?.horseId;
+          won = bet.horseid === winner?.horseId || bet.horseid === secondPlace?.horseId;
           break;
         case 'Show':
-          won = bet.horseId === winner?.horseId || bet.horseId === secondPlace?.horseId || bet.horseId === thirdPlace?.horseId;
+          won = bet.horseid === winner?.horseId || bet.horseid === secondPlace?.horseId || bet.horseid === thirdPlace?.horseId;
           break;
         // Add more complex bet types like exacta, trifecta here
       }
@@ -220,7 +220,7 @@ export const raceService = {
         .from('bets')
         .update({
           status: won ? 'Won' : 'Lost',
-          updatedAt: new Date().toISOString()
+          updatedat: new Date().toISOString()
         })
         .eq('id', bet.id);
 
@@ -231,21 +231,21 @@ export const raceService = {
 
       // If bet won, process payout
       if (won) {
-        await playerService.updatePlayerBalance(bet.playerId, bet.potentialPayout);
+        await playerService.updatePlayerBalance(bet.playerid, bet.potentialpayout);
         
         // Record transaction
         await supabase.from('transactions').insert({
           id: `bet-win-${Date.now()}`,
-          playerId: bet.playerId,
+          playerid: bet.playerid,
           type: 'bet_win',
-          amount: bet.potentialPayout,
+          amount: bet.potentialpayout,
           currency: 'TURF',
-          relatedId: bet.id,
-          description: `Won ${bet.type} bet on race ${bet.raceId}`,
+          relatedid: bet.id,
+          description: `Won ${bet.type} bet on race ${bet.raceid}`,
           timestamp: new Date().toISOString(),
           status: 'completed',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
+          createdat: new Date().toISOString(),
+          updatedat: new Date().toISOString()
         });
       }
     }
