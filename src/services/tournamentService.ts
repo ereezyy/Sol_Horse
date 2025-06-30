@@ -9,7 +9,6 @@ export const tournamentService = {
     const { data, error } = await supabase
       .from('tournaments')
       .select('*')
-      .order('tournamentStart', { ascending: true });
       .order('tournamentstart', { ascending: true });
 
     if (error) {
