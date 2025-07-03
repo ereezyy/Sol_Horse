@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from './store/gameStore';
-import { checkSupabaseConnection } from './services/supabase';
+import { checkSupabaseConnection, isUsingLocalData } from './services/supabase';
 import Navigation from './components/Navigation';
 import WalletConnection from './components/WalletConnection';
 import HorseCard from './components/HorseCard';
@@ -210,26 +210,36 @@ function App() {
 
   // Check Supabase connection
   useEffect(() => {
-    const verifySupabaseConnection = async () => {
-      const result = await checkSupabaseConnection();
-      if (!result.success) {
-        console.warn('Supabase connection issue:', result.message);
+    const initializeApplication = async () => {
+      try {
+        // Check Supabase connection
+        const connectionResult = await checkSupabaseConnection();
+        
+        if (!connectionResult.success) {
+          console.info('Using local data mode:', connectionResult.message);
+          
+          // Add notification about using local data mode
+          addNotification({
+            id: `supabase-mode-${Date.now()}`,
+            type: 'quest_complete',
+            title: 'Using Local Data Mode',
+            message: 'Game is running with local data. Your progress will not be saved to the cloud.',
+            timestamp: Date.now(),
+            read: false
+          });
+        } else {
+          console.info('Supabase connection successful');
+        }
+        
+        // Initialize game data
+        await initializeGame();
+      } catch (error) {
+        console.error('Error initializing application:', error);
         // Add notification about connection issue
-        addNotification({
-          id: `supabase-connection-${Date.now()}`,
-          type: 'quest_complete',
-          title: 'Database Connection Issue',
-          message: 'Using local data mode. Some features may be limited.',
-          timestamp: Date.now(),
-          read: false
-        });
-      } else {
-        console.log('Supabase connection successful');
       }
     };
 
-    verifySupabaseConnection();
-    initializeGame();
+    initializeApplication();
   }, []);
 
   // Initialize mock data
