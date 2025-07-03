@@ -30,6 +30,9 @@ const PlayerProfile: React.FC = () => {
   const [editingProfile, setEditingProfile] = useState(false);
   const [copiedAddress, setCopiedAddress] = useState(false);
   
+  // Handle both no player and guest player cases
+  const isGuestUser = player?.walletAddress?.startsWith('guest_');
+  
   if (!player) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -166,15 +169,29 @@ const PlayerProfile: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600 mb-1">Wallet Address</p>
-                <p className="font-mono text-gray-800">{player.walletAddress}</p>
+                <p className="font-mono text-gray-800">
+                  {isGuestUser ? 'Guest Account (Not Connected)' : player.walletAddress}
+                </p>
               </div>
-              <button
-                onClick={copyWalletAddress}
-                className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                {copiedAddress ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
-                {copiedAddress ? 'Copied!' : 'Copy'}
-              </button>
+              
+              {!isGuestUser && (
+                <button
+                  onClick={copyWalletAddress}
+                  className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  {copiedAddress ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
+                  {copiedAddress ? 'Copied!' : 'Copy'}
+                </button>
+              )}
+              
+              {isGuestUser && (
+                <button
+                  className="flex items-center gap-2 px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                >
+                  <Wallet className="w-4 h-4" />
+                  Connect Wallet
+                </button>
+              )}
             </div>
           </div>
         </div>

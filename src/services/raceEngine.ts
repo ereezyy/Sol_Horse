@@ -42,8 +42,8 @@ export class RaceEngine {
   
   // Enhanced race physics
   private readonly racePhysics = {
-    maxAcceleration: 6.0,      // Increased acceleration for more dynamic races
-    maxDeceleration: 8.0,      // Faster deceleration when tired
+    maxAcceleration: 7.5,      // Increased acceleration for more dynamic races
+    maxDeceleration: 9.0,      // Faster deceleration when tired
     energyRecoveryRate: 0.5,   // Slight energy recovery during strategic pacing
     temperamentVariance: 0.15, // 15% variance based on temperament
     intelligenceBonus: 0.02,   // 2% strategy bonus per intelligence point over 50
@@ -95,6 +95,9 @@ export class RaceEngine {
       case 'Cloudy': return 0.98;
       case 'Rainy': return 0.85;
       case 'Windy': return 0.92;
+      case 'Stormy': return 0.80;
+      case 'Drizzle': return 0.90;
+      default: return 0.95;
     }
   }
 
@@ -128,33 +131,64 @@ export class RaceEngine {
       if (horse.distanceCovered >= this.raceState.distance) return;
 
       // Calculate acceleration based on horse stats and race progress
-      const raceProgress = horse.distanceCovered / this.raceState.distance;
-      const energyFactor = this.calculateEnergyFactor(horse, raceProgress);
-      const strategicSpeed = this.calculateStrategicSpeed(horse, raceProgress);
-      
-      // Update speed with realistic acceleration/deceleration
-      const targetSpeed = strategicSpeed * energyFactor;
-      const speedDiff = targetSpeed - horse.currentSpeed;
-      const maxAcceleration = 5.0; // m/s² max acceleration
-      const acceleration = Math.sign(speedDiff) * Math.min(Math.abs(speedDiff), maxAcceleration * (this.updateInterval / 1000));
-      
-      horse.currentSpeed = Math.max(0, horse.currentSpeed + acceleration);
-      
-      // Update position
-      horse.distanceCovered += horse.currentSpeed * (this.updateInterval / 1000);
-      
-      // Update energy
-      const energyDrain = this.calculateEnergyDrain(horse);
-      horse.energy = Math.max(0, horse.energy - energyDrain);
-      
-      // Check if finished
-      if (horse.distanceCovered >= this.raceState.distance && !horse.finalTime) {
-        horse.finalTime = this.raceState.timeElapsed;
-        horse.distanceCovered = this.raceState.distance;
-        horse.currentSpeed = 0;
+      try {
+        const raceProgress = horse.distanceCovered / this.raceState.distance;
+        const energyFactor = this.calculateEnergyFactor(horse, raceProgress);
+        const strategicSpeed = this.calculateStrategicSpeed(horse, raceProgress);
+        
+        // Update speed with realistic acceleration/deceleration
+        const targetSpeed = strategicSpeed * energyFactor;
+        const speedDiff = targetSpeed - horse.currentSpeed;
+        
+        // Apply max acceleration/deceleration constraints
+        const maxAccel = speedDiff > 0 ? this.racePhysics.maxAcceleration : this.racePhysics.maxDeceleration;
+        const acceleration = Math.sign(speedDiff) * Math.min(Math.abs(speedDiff), maxAccel * (this.updateInterval / 1000));
+        
+        // Apply jockey skill and temperament variance (small random factor)
+        const varianceFactor = 1 + (Math.random() - 0.5) * 0.1 * this.racePhysics.temperamentVariance;
+        
+        horse.currentSpeed = Math.max(0, horse.currentSpeed + acceleration * varianceFactor);
+        
+        // Add track condition effect - horses can slip or lose momentum
+        if (this.raceState.trackCondition === 'Soft' || this.raceState.trackCondition === 'Heavy') {
+          // More variance on poor track conditions
+          if (Math.random() < 0.05) {
+            horse.currentSpeed *= (0.85 + Math.random() * 0.1);
+          }
+        }
+        
+        // Apply weather effects - gusts of wind can slow or speed up horses
+        if (this.raceState.weather === 'Windy' && Math.random() < 0.03) {
+          horse.currentSpeed *= (0.9 + Math.random() * 0.2);
+        }
+        
+        // Calculate actual distance covered with more precise physics
+        horse.distanceCovered += horse.currentSpeed * (this.updateInterval / 1000);
+        
+        // Update energy with more realistic consumption
+        const energyDrain = this.calculateEnergyDrain(horse);
+        
+        // Slight energy recovery for strategic pacing
+        let energyChange = -energyDrain;
+        if (horse.currentSpeed < horse.maxSpeed * 0.7 && horse.energy < 90) {
+          energyChange += this.racePhysics.energyRecoveryRate * (this.updateInterval / 1000);
+        }
+        
+        horse.energy = Math.max(0, Math.min(100, horse.energy + energyChange));
+        
+        // Check if finished
+        if (horse.distanceCovered >= this.raceState.distance && !horse.finalTime) {
+          horse.finalTime = this.raceState.timeElapsed;
+          horse.distanceCovered = this.raceState.distance;
+          horse.currentSpeed = 0;
+        }
+      } catch (error) {
+        console.error('Error updating horse in race:', error);
+        // Fallback to simple movement in case of error
+        horse.distanceCovered += Math.max(1, horse.currentSpeed * (this.updateInterval / 1000));
       }
     });
-
+      
     // Update positions
     this.updatePositions();
     
@@ -167,8 +201,15 @@ export class RaceEngine {
 
   private calculateEnergyFactor(horse: RaceHorse): number {
     // Energy affects performance exponentially
-    if (horse.energy <= 0) return 0.3;
-    return Math.pow(horse.energy / 100, 0.4);
+    if (horse.energy <= 0) return 0.25; // Even completely exhausted horses move a little
+    
+    // More pronounced effect of energy on speed
+    const baseFactor = Math.pow(horse.energy / 100, 0.45);
+    
+    // Add stamina influence - high stamina horses can maintain performance better
+    const staminaBonus = (horse.stamina / 200); // Up to 0.5 bonus for max stamina
+    
+    return baseFactor * (1 + staminaBonus);
   }
 
   private calculateStrategicSpeed(horse: RaceHorse, raceProgress: number): number {
@@ -195,26 +236,62 @@ export class RaceEngine {
 
   private calculateEnergyDrain(horse: RaceHorse): number {
     const baseStamina = horse.stamina / 100;
-    const speedFactor = horse.currentSpeed / horse.maxSpeed;
-    const weatherDrain = this.raceState.weather === 'Rainy' ? 1.3 : 1.0;
+    const speedFactor = Math.pow(horse.currentSpeed / horse.maxSpeed, 2); // Exponential energy cost at high speeds
+    const weatherDrain = this.getWeatherEnergyDrain();
+    const trackDrain = this.getTrackEnergyDrain();
+    const temperamentBonus = (horse.temperament / 200); // Up to 0.5 reduction for good temperament
     
-    // Higher speeds drain more energy exponentially
-    const drainRate = Math.pow(speedFactor, 1.8) * (2 - baseStamina) * weatherDrain;
-    return drainRate * (this.updateInterval / 1000) * 0.8; // 0.8% per second at full speed with average stamina
+    // Higher speeds drain more energy exponentially with more factors
+    const drainRate = speedFactor * (1.8 - baseStamina) * weatherDrain * trackDrain * (1 - temperamentBonus);
+    
+    // Add small random factor for realism
+    const varianceFactor = 0.9 + Math.random() * 0.2;
+    
+    return drainRate * (this.updateInterval / 1000) * 0.85 * varianceFactor;
+  }
+  
+  private getWeatherEnergyDrain(): number {
+    switch (this.raceState.weather) {
+      case 'Rainy': return 1.3;
+      case 'Windy': return 1.2;
+      case 'Stormy': return 1.5;
+      case 'Drizzle': return 1.15;
+      case 'Cloudy': return 1.05;
+      default: return 1.0; // Clear weather
+    }
+  }
+  
+  private getTrackEnergyDrain(): number {
+    switch (this.raceState.trackCondition) {
+      case 'Heavy': return 1.4;
+      case 'Soft': return 1.25;
+      case 'Good': return 1.1;
+      default: return 1.0; // Fast track
+    }
   }
 
   private updatePositions(): void {
-    // Sort by distance covered, then by current speed for ties
-    const sorted = [...this.raceState.horses].sort((a, b) => {
-      if (Math.abs(a.distanceCovered - b.distanceCovered) < 0.1) {
-        return b.currentSpeed - a.currentSpeed;
-      }
-      return b.distanceCovered - a.distanceCovered;
-    });
+    try {
+      // More sophisticated positioning that considers "lengths" and racing terminology
+      // Sort by distance covered, then by current speed for ties
+      const sorted = [...this.raceState.horses].sort((a, b) => {
+        if (Math.abs(a.distanceCovered - b.distanceCovered) < 0.1) {
+          // Near ties are resolved by speed and intelligence (smarter horses position better)
+          return (b.currentSpeed + b.intelligence * 0.1) - (a.currentSpeed + a.intelligence * 0.1);
+        }
+        return b.distanceCovered - a.distanceCovered;
+      });
 
-    sorted.forEach((horse, index) => {
-      horse.position = index + 1;
-    });
+      sorted.forEach((horse, index) => {
+        horse.position = index + 1;
+      });
+    } catch (error) {
+      console.error('Error updating positions:', error);
+      // Fallback to simple position assignment by current index
+      this.raceState.horses.forEach((horse, index) => {
+        horse.position = index + 1;
+      });
+    }
   }
 
   private finishRace(): void {
@@ -224,12 +301,12 @@ export class RaceEngine {
 
     this.raceState.results = finishedHorses.map((horse, index) => ({
       position: index + 1,
-      horseId: horse.id,
+      id: horse.id,
       name: horse.name,
-      time: horse.finalTime!,
-      winnings: 0 // Will be calculated by betting system
-    }));
-
+      position: 0,
+      distanceCovered: 0,
+      currentSpeed: 0,
+      energy: 100,
     this.raceState.isFinished = true;
   }
 

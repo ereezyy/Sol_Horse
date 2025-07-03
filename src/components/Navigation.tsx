@@ -28,6 +28,7 @@ const Navigation: React.FC = () => {
   const { currentView, setCurrentView, player, notifications } = useGameStore();
   
   const unreadNotifications = notifications.filter(n => !n.read).length;
+  const isGuestUser = player?.walletAddress?.startsWith('guest_');
 
   const navItems = [
     { id: 'stable', label: 'My Stable', icon: Home, color: 'emerald' },
@@ -97,13 +98,19 @@ const Navigation: React.FC = () => {
               </button>
             </div>
 
+            {isGuestUser && (
+              <div className="bg-yellow-100 text-yellow-800 px-3 py-1 text-xs font-medium rounded-full">
+                Guest Mode
+              </div>
+            )}
+
             {/* Wallet */}
-            <button className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-xl transition-colors">
+            <button className={`flex items-center gap-2 ${isGuestUser ? 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600' : 'bg-blue-500 hover:bg-blue-600'} text-white px-4 py-2 rounded-xl transition-colors`}>
               <Wallet className="w-4 h-4" />
               <span className="font-medium">
-                {player?.walletAddress ? 
+                {player?.walletAddress && !isGuestUser ? 
                   `${player.walletAddress.slice(0, 4)}...${player.walletAddress.slice(-4)}` : 
-                  'Connect Wallet'
+                  isGuestUser ? 'Connect Wallet' : 'Connect Wallet'
                 }
               </span>
             </button>
