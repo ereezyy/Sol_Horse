@@ -25,6 +25,7 @@ import {
 import { useGameStore } from '../store/gameStore';
 import { HorseNFT, MarketplaceListing } from '../types';
 import HorseCard from './HorseCard';
+import CurrencyDisplay from './CurrencyDisplay';
 
 interface MarketplaceFilters {
   bloodline: string;
@@ -37,6 +38,7 @@ interface MarketplaceFilters {
 
 const Marketplace: React.FC = () => {
   const { player, horses, updatePlayerBalance, addNotification } = useGameStore();
+  const isGuest = player?.walletAddress?.startsWith('guest_');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState<MarketplaceFilters>({
@@ -157,12 +159,16 @@ const Marketplace: React.FC = () => {
   });
 
   const handlePurchase = async (listing: MarketplaceListing) => {
-    if (!player || player.assets.turfBalance < listing.price) {
+    const hasSufficientFunds = isGuest 
+      ? (player.assets.guestCoins || 0) >= listing.price 
+      : player.assets.turfBalance >= listing.price;
+    
+    if (!player || !hasSufficientFunds) {
       addNotification({
         id: Date.now().toString(),
         type: 'marketplace_sale',
         title: 'Insufficient Funds',
-        message: `You need ${listing.price.toLocaleString()} $TURF to purchase this horse`,
+        message: `You need ${listing.price.toLocaleString()} ${isGuest ? 'GC' : '$TURF'} to purchase this horse`,
         timestamp: Date.now(),
         read: false
       });
@@ -172,15 +178,62 @@ const Marketplace: React.FC = () => {
     setIsLoading(true);
     
     // Simulate blockchain transaction
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise(resolve => setTimeout(resolve, 1500));
     
-    updatePlayerBalance(-listing.price);
+    // For guest mode, handle the transaction differently
+    if (isGuest) {
+      try {
+        // Update guest coins directly in player state
+        const updatedPlayer = {
+          ...player,
+          assets: {
+            ...player.assets,
+            guestCoins: (player.assets.guestCoins || 0) - listing.price
+          }
+        };
+        
+        // Update the game store directly
+        useGameStore.setState({ player: updatedPlayer });
+        
+        // Update the horse ownership directly
+        const updatedHorse = horses.find(h => h.id === listing.itemId);
+        if (updatedHorse) {
+          const modifiedHorse = {
+            ...updatedHorse,
+            owner: player.walletAddress,
+            isForSale: false,
+            price: undefined
+          };
+          
+          // Update the horse in the store
+          useGameStore.setState({
+            horses: horses.map(h => h.id === modifiedHorse.id ? modifiedHorse : h)
+          });
+        }
+      } catch (error) {
+        console.error('Error processing guest purchase:', error);
+        addNotification({
+          id: Date.now().toString(),
+          type: 'marketplace_sale',
+          title: 'Purchase Failed',
+          message: 'There was an error completing your purchase. Please try again.',
+          timestamp: Date.now(),
+          read: false
+        });
+        setIsLoading(false);
+        return;
+      }
+    } else {
+      // Real wallet user - use the updatePlayerBalance function
+      updatePlayerBalance(-listing.price);
+    }
     
+    // Add purchase notification
     addNotification({
       id: Date.now().toString(),
       type: 'marketplace_sale',
       title: 'Purchase Successful!',
-      message: `You successfully purchased ${listing.title} for ${listing.price.toLocaleString()} $TURF`,
+      message: `You successfully purchased ${listing.title} for ${listing.price.toLocaleString()} ${isGuest ? 'GC' : '$TURF'}`,
       timestamp: Date.now(),
       read: false
     });
@@ -224,7 +277,7 @@ const Marketplace: React.FC = () => {
             <p className="text-2xl font-bold text-green-600">
               {(marketStats.totalVolume / 1000).toFixed(0)}K
             </p>
-            <p className="text-sm text-gray-600">Total Volume</p>
+            <p className="text-sm text-gray-600">Total Volume ({isGuest ? 'GC' : '$TURF'})</p>
           </div>
           
           <div className="text-center p-4 bg-blue-50 rounded-xl">
@@ -389,7 +442,7 @@ const Marketplace: React.FC = () => {
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <p className="text-2xl font-bold text-gray-800">{listing.price.toLocaleString()}</p>
-                    <p className="text-sm text-gray-600">$TURF</p>
+                    <p className="text-sm text-gray-600">{isGuest ? 'GC' : '$TURF'}</p>
                   </div>
                   {listing.negotiable && (
                     <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">
@@ -502,9 +555,9 @@ const Marketplace: React.FC = () => {
                 </button>
                 <button
                   onClick={() => handlePurchase(selectedListing)}
-                  disabled={isLoading || !player || player.assets.turfBalance < selectedListing.price}
+                  disabled={isLoading || !player || (isGuest ? (player.assets.guestCoins || 0) : player.assets.turfBalance) < selectedListing.price}
                   className={`flex-1 px-4 py-2 rounded-lg font-semibold transition-colors ${
-                    isLoading || !player || player.assets.turfBalance < selectedListing.price
+                    isLoading || !player || (isGuest ? (player.assets.guestCoins || 0) : player.assets.turfBalance) < selectedListing.price
                       ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       : 'bg-blue-500 hover:bg-blue-600 text-white'
                   }`}
