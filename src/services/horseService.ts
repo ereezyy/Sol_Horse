@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { safeSupabaseOperation } from './supabase';
 import { HorseNFT } from '../types';
 
 export const horseService = {
@@ -6,17 +7,22 @@ export const horseService = {
    * Get horses owned by a player
    */
   async getPlayerHorses(walletAddress: string): Promise<HorseNFT[]> {
-    const { data, error } = await supabase
-      .from('horses')
-      .select('*')
-      .eq('owner', walletAddress);
-
-    if (error) {
-      console.error('Error fetching player horses:', error);
-      return [];
-    }
-
-    return data.map(horse => ({
+    return await safeSupabaseOperation(async () => {
+      if (!supabase) return [];
+      
+      const { data, error } = await supabase
+        .from('horses')
+        .select('*')
+        .eq('owner', walletAddress);
+  
+      if (error) throw error;
+  
+      return data.map(horse => this.mapDatabaseToHorse(horse));
+    }, []);
+  },
+  
+  mapDatabaseToHorse(horse): HorseNFT {
+    return {
       id: horse.id,
       tokenId: horse.tokenId,
       name: horse.name,
@@ -31,7 +37,7 @@ export const horseService = {
       price: horse.price,
       isForLease: horse.isforlease,
       leaseTerms: horse.leasetermsdata as any
-    }));
+    };
   },
 
   /**
