@@ -237,7 +237,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
   
   addNotification: (notification) => set((state) => ({
-    notifications: [notification, ...state.notifications.slice(0, 9)] // Keep last 10
+    notifications: [
+      { 
+        ...notification, 
+        id: notification.id || `notif-${Date.now()}-${Math.random().toString(36).substring(2, 9)}` 
+      }, 
+      ...state.notifications.slice(0, 9)
+    ] // Keep last 10
   })),
   
   performDailyCheckIn: () => {

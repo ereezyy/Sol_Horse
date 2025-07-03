@@ -139,6 +139,119 @@ const WalletConnection: React.FC = () => {
       }
     });
     
+
+  // Play as guest mode - generate a mock player without wallet
+  const playAsGuest = async () => {
+    setIsConnecting(true);
+    
+    try {
+      // Simulate connection delay for a realistic experience
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Generate a guest player with random ID
+      const guestId = `Guest_${Math.random().toString(36).substr(2, 6)}`;
+      
+      // Create mock player data
+      const mockPlayer = {
+        id: Date.now().toString(),
+        walletAddress: `guest_${Date.now()}`, // Special format to identify as guest
+        username: guestId,
+        profile: {
+          avatar: '',
+          bio: 'Guest horse trainer trying out the platform',
+          joinDate: Date.now(),
+          country: 'Global',
+          stableName: `${guestId}'s Stable`
+        },
+        assets: {
+          turfBalance: 25000 + Math.floor(Math.random() * 5000),
+          solBalance: 5.0,
+          horses: [],
+          facilities: [
+            {
+              id: '1',
+              type: 'Stable',
+              level: 2,
+              capacity: 8,
+              upgradeCost: 10000,
+              benefits: {
+                trainingEfficiency: 1.1,
+                recoverySpeed: 1.05,
+                breedingSuccessRate: 1.0
+              }
+            }
+          ]
+        },
+        stats: {
+          totalRaces: 0,
+          wins: 0,
+          winRate: 0,
+          totalEarnings: 0,
+          totalSpent: 0,
+          netProfit: 0,
+          reputation: 100,
+          lastCheckIn: null,
+          consecutiveCheckIns: 0,
+          achievements: [
+            {
+              id: '1',
+              name: 'Welcome!',
+              description: 'Started your racing journey as a guest',
+              icon: 'star',
+              rarity: 'Common',
+              unlockedAt: Date.now(),
+              rewards: {
+                turfTokens: 1000,
+                title: 'Newcomer'
+              }
+            }
+          ]
+        },
+        social: {
+          guildId: undefined,
+          friends: [],
+          followers: 0,
+          following: 0
+        },
+        preferences: {
+          notifications: true,
+          publicProfile: true,
+          allowBreedingRequests: true,
+          dailyCheckInReminder: true
+        }
+      };
+
+      // Set wallet stats for UI display
+      setWalletStats({
+        balance: mockPlayer.assets.solBalance,
+        transactions: 0,
+        staked: 0,
+        rewards: 0
+      });
+      
+      // Note: we're not setting connectedWallet for guest mode
+      
+      // Set the player in the game store
+      setPlayer(mockPlayer);
+      
+      // Add a notification that data won't be saved
+      setTimeout(() => {
+        addNotification({
+          id: Date.now().toString(),
+          type: 'guest_mode',
+          title: 'Guest Mode Active',
+          message: 'You\'re playing as a guest. Your progress won\'t be saved across sessions.',
+          timestamp: Date.now(),
+          read: false
+        });
+      }, 1500);
+      
+    } catch (error) {
+      console.error('Error creating guest player:', error);
+    } finally {
+      setIsConnecting(false);
+    }
+  };
     return () => {
       window.removeEventListener('unhandledrejection', handleWalletError);
     };
@@ -219,7 +332,7 @@ const WalletConnection: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto p-6">
       {!player ? (
-        /* Wallet Selection */
+        /* Connect Wallet or Play as Guest */
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <div className="text-center mb-8">
             <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
@@ -229,8 +342,25 @@ const WalletConnection: React.FC = () => {
             <p className="text-gray-600">Choose your preferred Solana wallet to start playing</p>
           </div>
 
-          <div className="flex justify-center mb-8">
+          <div className="flex flex-col items-center gap-4 mb-8">
             <SolanaWalletConnection />
+            
+            <div className="relative w-full max-w-xs text-center">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300"></div>
+              </div>
+              <div className="relative flex justify-center">
+                <span className="px-2 bg-white text-sm text-gray-500">or</span>
+              </div>
+            </div>
+            
+            <button
+              onClick={playAsGuest}
+              className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg shadow-sm font-medium transition-all flex items-center gap-2"
+            >
+              <User className="w-5 h-5" />
+              Play as Guest
+            </button>
           </div>
 
           {walletError && (
@@ -250,8 +380,12 @@ const WalletConnection: React.FC = () => {
           {isConnecting && (
             <div className="text-center">
               <div className="inline-flex items-center gap-3 px-6 py-3 bg-blue-100 rounded-xl">
-                <RefreshCw className="w-5 h-5 text-blue-600 animate-spin" />
-                <span className="text-blue-700 font-medium">Connecting wallet...</span>
+                <RefreshCw 
+                  className="w-5 h-5 text-blue-600 animate-spin" 
+                />
+                <span className="text-blue-700 font-medium">
+                  {connectedWallet ? "Connecting wallet..." : "Setting up guest account..."}
+                </span>
               </div>
             </div>
           )}
