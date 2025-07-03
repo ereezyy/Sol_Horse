@@ -107,9 +107,9 @@ export interface Race {
   
   // Race conditions
   conditions: {
-    weather: 'Clear' | 'Cloudy' | 'Rainy' | 'Windy';
+    weather: 'Clear' | 'Cloudy' | 'Rainy' | 'Windy' | 'Stormy' | 'Snowy' | 'Drizzle';
     temperature: number;
-    trackCondition: 'Fast' | 'Good' | 'Soft' | 'Heavy';
+    trackCondition: 'Fast' | 'Good' | 'Soft' | 'Heavy' | 'Frozen' | 'Muddy';
   };
   
   // Entry requirements

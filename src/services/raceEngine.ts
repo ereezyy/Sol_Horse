@@ -307,6 +307,9 @@ export class RaceEngine {
       distanceCovered: 0,
       currentSpeed: 0,
       energy: 100,
+    }
+    )
+    )
     this.raceState.isFinished = true;
   }
 

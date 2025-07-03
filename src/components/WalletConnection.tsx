@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import SolanaWalletConnection from './SolanaWalletConnection';
 import { 
@@ -13,7 +13,8 @@ import {
   Activity,
   DollarSign,
   TrendingUp,
-  Settings
+  Settings,
+  User
 } from 'lucide-react';
 import { useGameStore } from '../store/gameStore';
 
@@ -37,16 +38,28 @@ const WalletConnection: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   
-  const { player, setPlayer } = useGameStore();
-  const [walletError, setWalletError] = useState<string | null>(null);
+  const { player, setPlayer, addNotification } = useGameStore();
+  const [connectionStatus, setConnectionStatus] = useState<{
+    error: string | null;
+    loading: boolean;
+    type: 'none' | 'wallet' | 'guest';
+  }>({
+    error: null,
+    loading: false,
+    type: 'none'
+  });
 
   // Simulate wallet connection
-  const connectWallet = async (walletType: 'phantom' | 'solflare' | 'backpack') => {
-    setIsConnecting(true);
+  const connectWallet = useCallback(async (walletType: 'phantom' | 'solflare' | 'backpack') => {
+    setConnectionStatus({
+      error: null,
+      loading: true,
+      type: 'wallet'
+    });
     
     try {
       // Simulate connection delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise(resolve => setTimeout(resolve, 1500));
       
       // Mock wallet address generation
       const mockAddress = `${walletType.charAt(0).toUpperCase()}${Math.random().toString(36).substr(2, 9)}...${Math.random().toString(36).substr(2, 4)}`;
@@ -125,10 +138,14 @@ const WalletConnection: React.FC = () => {
   useEffect(() => {
     const handleWalletError = (error: any) => {
       console.warn('Wallet extension error (this is normal in demo mode):', error);
-      setWalletError('Wallet extension not available - demo mode active');
+      setConnectionStatus({
+        error: 'Wallet extension not available - demo mode active',
+        loading: false,
+        type: 'wallet'
+      });
       
       // Clear error after 5 seconds
-      setTimeout(() => setWalletError(null), 5000);
+      setTimeout(() => setConnectionStatus(prev => ({ ...prev, error: null })), 5000);
     };
     
     // Listen for wallet errors
@@ -142,7 +159,11 @@ const WalletConnection: React.FC = () => {
 
   // Play as guest mode - generate a mock player without wallet
   const playAsGuest = async () => {
-    setIsConnecting(true);
+    setConnectionStatus({
+      error: null,
+      loading: true,
+      type: 'guest'
+    });
     
     try {
       // Simulate connection delay for a realistic experience
@@ -249,7 +270,10 @@ const WalletConnection: React.FC = () => {
     } catch (error) {
       console.error('Error creating guest player:', error);
     } finally {
-      setIsConnecting(false);
+      setConnectionStatus(prev => ({
+        ...prev,
+        loading: false
+      }));
     }
   };
     return () => {
@@ -272,28 +296,51 @@ const WalletConnection: React.FC = () => {
         rewards: Math.random() * 2
       });
       
-    } catch (error) {
-      console.error('Wallet connection failed:', error);
+    } catch (error: any) {
+      console.error('Wallet connection failed:', error?.message || error);
+      setConnectionStatus({
+        error: 'Wallet connection failed. Please try again or use Guest Mode.',
+        loading: false,
+        type: 'wallet'
+      });
+      
+      // Clear error after 5 seconds
+      setTimeout(() => {
+        setConnectionStatus(prev => ({ ...prev, error: null }));
+      }, 5000);
+      
+      return;
     } finally {
-      setIsConnecting(false);
+      setConnectionStatus(prev => ({
+        ...prev,
+        loading: false
+      }));
     }
-  };
+  }, [setPlayer]);
 
-  const disconnectWallet = () => {
+  const disconnectWallet = useCallback(() => {
+    // Stop any ongoing connection attempts
+    setConnectionStatus({
+      error: null,
+      loading: false,
+      type: 'none'
+    });
+    
+    // Disconnect wallet
     setConnectedWallet(null);
     setPlayer(null);
     setWalletStats({ balance: 0, transactions: 0, staked: 0, rewards: 0 });
-  };
+  }, [setPlayer]);
 
-  const copyAddress = () => {
+  const copyAddress = useCallback(() => {
     if (connectedWallet) {
       navigator.clipboard.writeText(connectedWallet);
       setCopiedAddress(true);
       setTimeout(() => setCopiedAddress(false), 2000);
     }
-  };
+  }, [connectedWallet]);
 
-  const refreshBalance = () => {
+  const refreshBalance = useCallback(() => {
     setRefreshing(true);
     setTimeout(() => {
       setWalletStats(prev => ({
@@ -303,7 +350,7 @@ const WalletConnection: React.FC = () => {
       }));
       setRefreshing(false);
     }, 1500);
-  };
+  }, []);
 
   const walletOptions = [
     {
@@ -363,28 +410,28 @@ const WalletConnection: React.FC = () => {
             </button>
           </div>
 
-          {walletError && (
+          {connectionStatus.error && (
             <div className="mb-6 p-4 bg-blue-50 rounded-xl border border-blue-200">
               <div className="flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5" />
                 <div>
                   <h4 className="font-semibold text-blue-800 mb-1">Demo Mode</h4>
                   <p className="text-sm text-blue-700">
-                    {walletError}. The application will work with simulated wallet functionality.
+                    {connectionStatus.error}. The application will work with simulated wallet functionality.
                   </p>
                 </div>
               </div>
             </div>
           )}
 
-          {isConnecting && (
+          {connectionStatus.loading && (
             <div className="text-center">
               <div className="inline-flex items-center gap-3 px-6 py-3 bg-blue-100 rounded-xl">
                 <RefreshCw 
                   className="w-5 h-5 text-blue-600 animate-spin" 
                 />
                 <span className="text-blue-700 font-medium">
-                  {connectedWallet ? "Connecting wallet..." : "Setting up guest account..."}
+                  {connectionStatus.type === 'wallet' ? "Connecting wallet..." : "Setting up guest account..."}
                 </span>
               </div>
             </div>

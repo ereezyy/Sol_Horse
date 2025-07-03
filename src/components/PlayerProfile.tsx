@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   User, 
   Crown, 
+  AlertCircle,
   Trophy, 
   Target, 
   DollarSign, 
@@ -40,6 +41,39 @@ const PlayerProfile: React.FC = () => {
           <User className="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <h3 className="text-xl font-semibold text-gray-600">No Profile Found</h3>
           <p className="text-gray-500">Connect your wallet to view your profile</p>
+        </div>
+      </div>
+    );
+  }
+  
+  // Special message for guest mode
+  if (player.walletAddress.startsWith('guest_')) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <User className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-gray-600">Guest Mode Active</h3>
+          <p className="text-gray-500 mb-6">Connect a wallet to create a permanent profile</p>
+          
+          <div className="bg-yellow-50 rounded-xl p-6 max-w-lg mx-auto border border-yellow-200">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-6 h-6 text-yellow-600 mt-1" />
+              <div className="text-left">
+                <h4 className="font-semibold text-gray-800 mb-2">Guest Mode Limitations</h4>
+                <ul className="text-sm text-gray-600 space-y-1 list-disc list-inside">
+                  <li>Your progress won't be saved when you close the browser</li>
+                  <li>Can't participate in tournaments or special events</li>
+                  <li>Limited access to premium features</li>
+                  <li>No blockchain ownership of horses or assets</li>
+                </ul>
+                <div className="mt-4">
+                  <button className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                    Connect Wallet to Unlock Full Game
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );

@@ -17,6 +17,12 @@
     /* Better touch scrolling */
     -webkit-overflow-scrolling: touch;
   }
+
+  @keyframes gallop {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+    100% { transform: translateY(0); }
+  }
   
   /* Improved focus styles for accessibility */
   *:focus {
@@ -63,6 +69,7 @@
     @apply w-full px-4 py-3 text-base bg-gray-800 border border-gray-600 rounded-lg;
     @apply focus:border-purple-500 focus:ring-1 focus:ring-purple-500;
     @apply placeholder-gray-400;
+    touch-action: manipulation;
   }
   
   /* Better modal styles for mobile */
@@ -74,6 +81,25 @@
   .modal-content {
     @apply w-full max-w-lg bg-gray-800 rounded-t-2xl sm:rounded-2xl;
     @apply max-h-[90vh] overflow-y-auto;
+  }
+  
+  /* Enhanced 3D track */
+  .track3d {
+    transform-style: preserve-3d;
+    perspective: 1000px;
+  }
+  
+  /* Grid pattern for backgrounds */
+  .bg-grid-pattern {
+    background-image: 
+      linear-gradient(to right, rgba(99, 102, 241, 0.1) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(99, 102, 241, 0.1) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+  
+  /* Horse animations */
+  .horse-gallop {
+    animation: gallop 0.2s ease-in-out infinite;
   }
 }
 
@@ -140,5 +166,35 @@
   
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
     background: rgb(156 163 175);
+  }
+  
+  /* Glass effect */
+  .glass-effect {
+    @apply bg-white bg-opacity-10 backdrop-filter backdrop-blur-md;
+    @apply border border-white border-opacity-20;
+  }
+  
+  /* Racing animation utilities */
+  .anim-bounce {
+    animation: bounce 0.5s ease infinite alternate;
+  }
+  
+  .shadow-intense {
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.25);
+  }
+  
+  .text-shadow {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* Racing-specific effects */
+  .checkered-flag {
+    background-image: 
+      linear-gradient(45deg, #000 25%, transparent 25%), 
+      linear-gradient(-45deg, #000 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #000 75%),
+      linear-gradient(-45deg, transparent 75%, #000 75%);
+    background-size: 20px 20px;
+    background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
   }
 }
