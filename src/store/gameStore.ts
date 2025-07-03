@@ -3,7 +3,7 @@ import { HorseNFT, Player, Race, Bet, GameState, Tournament, TournamentEntry } f
 import playerService from '../services/playerService';
 import horseService from '../services/horseService';
 import raceService from '../services/raceService';
-import tournamentService from '../services/tournamentService';
+import { tournamentService } from '../services/tournamentService';
 
 interface GameStore extends GameState {
   // Actions
