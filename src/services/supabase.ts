@@ -1,11 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
 
 // Get Supabase URL and Key from environment variables
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
 // Create and export Supabase client
-export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '', {
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
@@ -17,7 +17,7 @@ export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '', {
 export const checkSupabaseConnection = async () => {
   try {
     if (!supabaseUrl || !supabaseAnonKey) {
-      console.warn('Supabase credentials not found in environment variables');
+      console.warn('Supabase credentials not found in environment variables. Please ensure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are set.');
       return { 
         success: false, 
         message: 'Using local data mode - Supabase credentials not configured',
@@ -26,18 +26,20 @@ export const checkSupabaseConnection = async () => {
     }
     
     // Test the connection with a lightweight query
-    const { error } = await supabase.from('players').select('count', { count: 'exact', head: true });
+    const { data, error } = await supabase.from('players').select('id', { count: 'exact', head: true });
     
     if (error) {
-      throw new Error(`Supabase query failed: ${error.message}`);
+      console.error('Supabase query failed:', error);
+      throw new Error(`Supabase query failed: ${error.message} (${error.code})`);
     }
     
+    console.info('Supabase connection successful - Database is accessible');
     return { success: true, message: 'Supabase connection successful' };
   } catch (error) {
     console.error('Supabase connection failed:', error);
     return { 
       success: false, 
-      message: 'Unable to connect to Supabase. Using local data mode.', 
+      message: 'Unable to connect to Supabase. Using local data mode. Check your connection parameters and network.', 
       error: error instanceof Error ? error.message : String(error) 
     };
   }

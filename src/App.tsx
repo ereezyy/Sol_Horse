@@ -212,30 +212,48 @@ function App() {
   useEffect(() => {
     const initializeApplication = async () => {
       try {
-        // Check Supabase connection
+        console.info('Initializing application and checking Supabase connection...');
         const connectionResult = await checkSupabaseConnection();
         
         if (!connectionResult.success) {
           console.info('Using local data mode:', connectionResult.message);
           
-          // Add notification about using local data mode
+          // Add notification about using local data mode with more detailed message
           addNotification({
             id: `supabase-mode-${Date.now()}`,
             type: 'quest_complete',
             title: 'Using Local Data Mode',
-            message: 'Game is running with local data. Your progress will not be saved to the cloud.',
+            message: connectionResult.isConfigError ? 
+              'Supabase credentials not configured. Game is running with local data - progress will not be saved.' :
+              `Database connection error: ${connectionResult.error || 'Unknown error'}. Using local data mode.`,
             timestamp: Date.now(),
             read: false
           });
         } else {
           console.info('Supabase connection successful');
+          addNotification({
+            id: `supabase-mode-${Date.now()}`,
+            type: 'quest_complete',
+            title: 'Cloud Sync Active',
+            message: 'Connected to Supabase. Your progress will be saved to the cloud.',
+            timestamp: Date.now(),
+            read: false
+          });
         }
         
         // Initialize game data
         await initializeGame();
       } catch (error) {
-        console.error('Error initializing application:', error);
-        // Add notification about connection issue
+        console.error('Error initializing application:', error instanceof Error ? error.message : error);
+        // Add notification about initialization issue
+        addNotification({
+          id: `init-error-${Date.now()}`,
+          type: 'quest_complete',
+          title: 'Initialization Error',
+          message: 'There was a problem starting the game. Some features may be unavailable.',
+          timestamp: Date.now(),
+          read: false
+        });
       }
     };
 
