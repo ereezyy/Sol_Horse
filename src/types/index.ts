@@ -183,6 +183,8 @@ export interface Player {
   // Assets
   assets: {
     turfBalance: number; // $TURF tokens
+    guestCoins?: number; // Virtual coins for guest users (no real value)
+    racingCredits?: number; // Special entry currency for guests
     solBalance: number; // SOL balance
     horses: string[]; // horse IDs
     facilities: Facility[];

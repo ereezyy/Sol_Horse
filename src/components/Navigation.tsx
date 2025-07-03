@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { useGameStore } from '../store/gameStore';
 import DailyCheckIn from './DailyCheckIn';
+import CurrencyDisplay from './CurrencyDisplay';
 
 const Navigation: React.FC = () => {
   const { currentView, setCurrentView, player, notifications } = useGameStore();
@@ -68,22 +69,10 @@ const Navigation: React.FC = () => {
           {/* Player Info */}
           <div className="flex items-center gap-4">
             {/* Balance */}
-            <div className="flex items-center gap-3 bg-gradient-to-r from-emerald-50 to-blue-50 px-4 py-2 rounded-xl">
+            <div className="flex items-center gap-3 px-4 py-2 rounded-xl">
               <DailyCheckIn />
-              <div className="w-px h-4 bg-gray-300" />
-              <div className="flex items-center gap-2">
-                <Zap className="w-4 h-4 text-emerald-600" />
-                <span className="font-semibold text-emerald-700">
-                  {player?.assets.turfBalance.toLocaleString() || '0'} $TURF
-                </span>
-              </div>
-              <div className="w-px h-4 bg-gray-300" />
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full" />
-                <span className="font-semibold text-gray-700">
-                  {player?.assets.solBalance.toFixed(2) || '0.00'} SOL
-                </span>
-              </div>
+              <div className="w-px h-6 bg-gray-300 mx-2" />
+              <CurrencyDisplay />
             </div>
 
             {/* Notifications */}

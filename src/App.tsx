@@ -1,292 +1,180 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence, useMotionTemplate, useMotionValue } from 'framer-motion';
 import { useGameStore } from './store/gameStore';
-import { checkSupabaseConnection } from './services/supabase';
+import { checkSupabaseConnection, isUsingLocalData } from './services/supabase';
 import Navigation from './components/Navigation';
 import WalletConnection from './components/WalletConnection';
 import HorseCard from './components/HorseCard';
-import RaceTrack from './components/RaceTrack'; 
+import RaceTrack from './components/RaceTrack';
 import BettingPanel from './components/BettingPanel';
-import BreedingCenter from './components/BreedingCenter';
-import TrainingCenter from './components/TrainingCenter';
-import TournamentCenter from './components/TournamentCenter';
-import TournamentSystem from './components/TournamentSystem';
 import Marketplace from './components/Marketplace';
-import GuildSystem from './components/GuildSystem';
-import AIAssistant from './components/AIAssistant';
-import PredictiveAnalytics from './components/PredictiveAnalytics';
-import DailyQuests from './components/DailyQuests';
-import AlertCircle from 'lucide-react/dist/esm/icons/alert-circle';
+import Leaderboard from './components/Leaderboard';
+import NotificationSystem from './components/NotificationSystem';
 import AchievementSystem from './components/AchievementSystem';
 import SeasonalEvents from './components/SeasonalEvents';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
-import PlayerProfile from './components/PlayerProfile'; 
+import PlayerProfile from './components/PlayerProfile';
 import DailyRewards from './components/DailyRewards';
 import { HorseNFT, Race, Player } from './types';
+import WelcomeScreen from './components/WelcomeScreen';
+import DailyRewardPopup from './components/DailyRewardPopup';
+import CurrencyDisplay from './components/CurrencyDisplay';
+
+// Add fun facts to display during loading
+const HORSE_FUN_FACTS = [
+  "Horses can sleep both standing up and lying down.",
+  "A horse's heart weighs approximately 10 pounds.",
+  "Horses have nearly 360-degree vision.",
+  "The fastest recorded speed of a horse was 55 mph."
+];
 
 // Mock data generator
 const generateMockHorses = (): HorseNFT[] => {
-  const bloodlines = ['Arabian', 'Thoroughbred', 'Quarter Horse', 'Mustang', 'Legendary'];
-  const coatColors = ['Bay', 'Black', 'Chestnut', 'Gray', 'Palomino'];
-  const rarities = ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary'];
-  const markings = ['Blaze', 'Star', 'Stripe', 'Socks', 'Stockings', 'None'];
+  const names = ['Thunder Bolt', 'Lightning Strike', 'Storm Chaser', 'Wind Runner', 'Fire Spirit'];
+  const breeds = ['Thoroughbred', 'Arabian', 'Quarter Horse', 'Mustang', 'Friesian'];
   
-  const horseNames = [
-    'Thunder Strike', 'Lightning Bolt', 'Storm Chaser', 'Wind Runner', 'Fire Spirit',
-    'Midnight Shadow', 'Golden Arrow', 'Silver Bullet', 'Diamond Dust', 'Crimson Flash',
-    'Azure Dream', 'Emerald Force', 'Platinum Rush', 'Copper Coin', 'Steel Magnolia',
-    'Velvet Thunder', 'Silk Lightning', 'Iron Will', 'Crystal Clear', 'Mystic Moon'
-  ];
-
-  return Array.from({ length: 20 }, (_, i) => {
-    const baseSpeed = 60 + Math.floor(Math.random() * 35);
-    const stamina = 60 + Math.floor(Math.random() * 35);
-    const agility = 60 + Math.floor(Math.random() * 35);
-    const temperament = 60 + Math.floor(Math.random() * 35);
-    const intelligence = 60 + Math.floor(Math.random() * 35);
-    
-    const rarity = rarities[Math.floor(Math.random() * rarities.length)] as any;
-    const races = Math.floor(Math.random() * 50);
-    const wins = Math.floor(races * (0.1 + Math.random() * 0.4));
-    
-    return {
-      id: `horse-${i + 1}`,
-      tokenId: `TOKEN-${1000 + i}`,
-      name: horseNames[i],
-      genetics: {
-        baseSpeed,
-        stamina,
-        agility,
-        temperament,
-        intelligence,
-        coatColor: coatColors[Math.floor(Math.random() * coatColors.length)],
-        markings: [markings[Math.floor(Math.random() * markings.length)]],
-        bloodline: bloodlines[Math.floor(Math.random() * bloodlines.length)] as any,
-        rarity,
-        generation: 1 + Math.floor(Math.random() * 5)
-      },
-      stats: {
-        age: 24 + Math.floor(Math.random() * 60), // 2-7 years
-        fitness: 80 + Math.floor(Math.random() * 20),
-        experience: races * 15 + Math.floor(Math.random() * 500), // More varied experience
-        wins,
-        races,
-        earnings: wins * (2000 + Math.random() * 8000), // Higher earnings potential
-        retirementAge: 96 + Math.floor(Math.random() * 24) // 8-10 years
-      },
-      breeding: {
-        canBreed: Math.random() > 0.2, // More horses available for breeding
-        breedingCooldown: Date.now() - Math.floor(Math.random() * 2000000), // Longer cooldown variation
-        offspring: [],
-        studFee: rarity === 'Legendary' ? 50000 : 
-                 rarity === 'Epic' ? 25000 : 
-                 rarity === 'Rare' ? 15000 : 
-                 rarity === 'Uncommon' ? 8000 : 3000, // More realistic pricing tiers
-        isPublicStud: Math.random() > 0.4 // More public studs available
-      },
-      training: {
-        completedSessions: [],
-        specializations: []
-      },
-      appearance: {
-        model3D: `horse-model-${i + 1}`,
-        animations: ['idle', 'run', 'gallop'],
-        accessories: []
-      },
-      lore: {
-        backstory: `A ${rarity.toLowerCase()} ${coatColors[Math.floor(Math.random() * coatColors.length)].toLowerCase()} horse with exceptional racing potential. Born from the ${bloodlines[Math.floor(Math.random() * bloodlines.length)]} bloodline, this horse shows remarkable promise on the track.`,
-        personality: ['Determined and competitive', 'Calm and focused', 'Energetic and spirited', 'Intelligent and strategic', 'Bold and fearless'][Math.floor(Math.random() * 5)],
-        quirks: [
-          ['Loves carrots', 'Gets excited before races'],
-          ['Prefers morning training', 'Enjoys being groomed'],
-          ['Responds well to music', 'Has a favorite stable mate'],
-          ['Loves rainy weather', 'Always hungry after races'],
-          ['Enjoys crowd cheers', 'Sleeps standing up']
-        ][Math.floor(Math.random() * 5)],
-        achievements: wins > 15 ? ['Champion racer', 'Multiple stakes winner'] : 
-                     wins > 8 ? ['Consistent performer', 'Stakes winner'] :
-                     wins > 3 ? ['Promising newcomer'] : []
-      },
-      owner: Math.random() > 0.6 ? 'current-player' : `owner-${Math.floor(Math.random() * 10)}`, // More player-owned horses
-      isForSale: Math.random() > 0.75, // More horses available for purchase
-      price: Math.random() > 0.75 ? 
-        (rarity === 'Legendary' ? 80000 + Math.floor(Math.random() * 120000) :
-         rarity === 'Epic' ? 40000 + Math.floor(Math.random() * 60000) :
-         rarity === 'Rare' ? 20000 + Math.floor(Math.random() * 30000) :
-         rarity === 'Uncommon' ? 10000 + Math.floor(Math.random() * 15000) :
-         5000 + Math.floor(Math.random() * 10000)) : undefined, // Rarity-based pricing
-      isForLease: Math.random() > 0.85, // Some horses available for lease
-      leaseTerms: Math.random() > 0.85 ? {
-        duration: 7 + Math.floor(Math.random() * 21), // 1-4 weeks
-        cost: 1000 + Math.floor(Math.random() * 4000),
-        revenueShare: 0.6 + Math.random() * 0.3 // 60-90% to lessee
-      } : undefined
-    };
-  });
+  return names.map((name, index) => ({
+    id: `horse-${index + 1}`,
+    name,
+    breed: breeds[index],
+    stats: {
+      speed: Math.floor(Math.random() * 20) + 80,
+      stamina: Math.floor(Math.random() * 20) + 80,
+      agility: Math.floor(Math.random() * 20) + 80,
+      intelligence: Math.floor(Math.random() * 20) + 80,
+    },
+    rarity: ['Common', 'Rare', 'Epic', 'Legendary'][Math.floor(Math.random() * 4)] as any,
+    level: Math.floor(Math.random() * 10) + 1,
+    experience: Math.floor(Math.random() * 1000),
+    wins: Math.floor(Math.random() * 10),
+    totalRaces: Math.floor(Math.random() * 20) + 5,
+    earnings: Math.floor(Math.random() * 50000),
+    imageUrl: `/api/placeholder/300/200?text=${encodeURIComponent(name)}`,
+    isForSale: Math.random() > 0.7,
+    price: Math.floor(Math.random() * 10000) + 5000,
+    owner: 'player1'
+  }));
 };
 
 const generateMockRaces = (): Race[] => {
-  const raceNames = [
-    'Thunder Valley Sprint', 'Lightning Derby', 'Storm Peak Classic', 'Wind Ridge Stakes',
-    'Fire Mountain Cup', 'Midnight Express', 'Golden Gate Gallop', 'Silver Creek Derby',
-    'Eclipse Championship', 'Royal Ascot Stakes', 'Kentucky Thunder', 'Dubai Gold Cup'
-  ];
-  
+  const raceNames = ['Derby Classic', 'Sprint Championship', 'Endurance Challenge', 'Speed Trial'];
   const surfaces = ['Dirt', 'Turf', 'Synthetic'];
-  const distances = [1200, 1400, 1600, 2000, 2400, 3200]; // Added longer distance
-  const weathers = ['Clear', 'Cloudy', 'Rainy', 'Windy'];
-  const trackConditions = ['Fast', 'Good', 'Soft', 'Heavy'];
-  const tiers = ['Novice', 'Professional', 'Stakes', 'Graded', 'Championship'];
   
-  // Check for special races and add more variety
-  const specialRace = Math.random() < 0.3;
-  const specialConditions = specialRace ? {
-    weather: Math.random() < 0.5 ? 'Stormy' : 'Snowy',
-    temperature: Math.random() < 0.5 ? Math.floor(Math.random() * 5) : Math.floor(Math.random() * 5) + 30,
-    trackCondition: Math.random() < 0.5 ? 'Muddy' : 'Frozen'
-  } : {
-    weather: weathers[Math.floor(Math.random() * weathers.length)] as any,
-    temperature: 15 + Math.floor(Math.random() * 20),
-    trackCondition: trackConditions[Math.floor(Math.random() * trackConditions.length)] as any
-  };
-
-  return Array.from({ length: 8 }, (_, i) => { // Increased to 8 races
-    const tier = tiers[Math.floor(Math.random() * tiers.length)] as any;
-    const basePrize = tier === 'Championship' ? 500000 :
-                     tier === 'Graded' ? 250000 :
-                     tier === 'Stakes' ? 100000 :
-                     tier === 'Professional' ? 50000 : 25000;
-    
-    return {
-      id: `race-${i + 1}`,
-      name: raceNames[i] || `Race ${i + 1}`,
-      type: i < 3 ? 'Sprint' : i < 6 ? 'Middle Distance' : 'Long Distance' as any,
-      surface: surfaces[Math.floor(Math.random() * surfaces.length)] as any,
-      distance: distances[Math.floor(Math.random() * distances.length)],
-        trackCondition: trackConditions[Math.floor(Math.random() * trackConditions.length)] as any
-      },
-      requirements: {
-        minAge: tier === 'Novice' ? 18 : 24,
-        maxAge: tier === 'Championship' ? 60 : 84, // Age restrictions for top races
-        minExperience: tier === 'Championship' ? 1000 : 
-                      tier === 'Graded' ? 500 :
-                      tier === 'Stakes' ? 200 : 0
-      },
-      tier,
-      conditions: specialRace ? specialConditions : {
-        weather: weathers[Math.floor(Math.random() * weathers.length)] as any,
-        temperature: 15 + Math.floor(Math.random() * 20),
-        trackCondition: trackConditions[Math.floor(Math.random() * trackConditions.length)] as any
-      },
-      entryFee: Math.floor(basePrize * 0.02) + Math.floor(Math.random() * Math.floor(basePrize * 0.03)), // 2-5% of prize
-      prizePool: basePrize + Math.floor(Math.random() * basePrize * 0.5), // Up to 50% variation
-      prizeDistribution: [50, 25, 15, 10], // Winner gets 50%, etc.
-      participants: [],
-      maxParticipants: tier === 'Championship' ? 12 : 
-                      tier === 'Graded' ? 10 : 8, // Bigger fields for bigger races
-      registrationDeadline: Date.now() + (24 + Math.floor(Math.random() * 48)) * 3600000, // 1-3 days
-      raceTime: Date.now() + (48 + Math.floor(Math.random() * 120)) * 3600000, // 2-7 days
-      status: ['Registration', 'Registration', 'Registration', 'Upcoming'][Math.floor(Math.random() * 4)] as any
-    };
-  });
+  return raceNames.map((name, index) => ({
+    id: `race-${index + 1}`,
+    name,
+    distance: [1200, 1600, 2000, 2400][index],
+    surface: surfaces[Math.floor(Math.random() * surfaces.length)] as any,
+    prizePool: Math.floor(Math.random() * 50000) + 10000,
+    entryFee: Math.floor(Math.random() * 1000) + 500,
+    maxParticipants: 8,
+    participants: [],
+    startTime: Date.now() + (index + 1) * 3600000, // 1 hour intervals
+    status: 'upcoming' as any,
+    weather: 'Clear',
+    track: {
+      name: `Track ${index + 1}`,
+      condition: 'Good'
+    }
+  }));
 };
 
 function App() {
-  // Enhanced background animation
+  const [selectedRace, setSelectedRace] = useState<Race | null>(null);
+  const [selectedHorses, setSelectedHorses] = useState<HorseNFT[]>([]);
+  
+  // Motion values for background animation
   const backgroundX = useMotionValue(0);
   const backgroundY = useMotionValue(0);
   const backgroundOpacity = useMotionValue(0.03);
   
+  // State for welcome screen
+  const [showWelcomeScreen, setShowWelcomeScreen] = useState(true);
+  const [showDailyReward, setShowDailyReward] = useState(false);
+  
   // Gradient background effect
   const background = useMotionTemplate`radial-gradient(
-    circle at ${backgroundX}px ${backgroundY}px, 
-    rgba(139, 92, 246, ${backgroundOpacity}),
-    rgba(79, 70, 229, 0) 30%
+    600px circle at ${backgroundX}px ${backgroundY}px,
+    rgba(29, 78, 216, ${backgroundOpacity}) 0%,
+    transparent 80%
   )`;
-  
-  // Update background effect on mouse movement
-  const updateMousePosition = (e: React.MouseEvent) => {
-    backgroundX.set(e.clientX);
-    backgroundY.set(e.clientY);
-  };
 
   const { 
     player, 
     horses, 
     currentView, 
+    setCurrentView,
     activeRaces, 
     upcomingRaces,
     addHorse,
     addRace,
     addNotification,
-    initializeGame
+    initializeGame,
+    updatePlayerBalance
   } = useGameStore();
 
   // Initialize daily check-in reminder
   useEffect(() => {
+    const checkDailyReward = () => {
+      if (!player) return;
+      
+      const lastCheckIn = localStorage.getItem(`lastCheckIn_${player.walletAddress}`);
+      const today = new Date().toDateString();
+      
+      if (lastCheckIn !== today) {
+        addNotification({
+          id: `daily-${Date.now()}`,
+          type: 'info',
+          title: 'Daily Reward Available!',
+          message: 'Claim your daily TURF tokens',
+          timestamp: Date.now()
+        });
+      }
+    };
+
+    const timer = setTimeout(checkDailyReward, 2000);
+    return () => clearTimeout(timer);
+  }, [player, addNotification]);
+
+  // Initialize mock data
+  useEffect(() => {
+    const mockHorses = generateMockHorses();
+    const mockRaces = generateMockRaces();
+    
+    mockHorses.forEach(horse => addHorse(horse));
+    mockRaces.forEach(race => addRace(race));
+  }, []);
+
+  // Check for daily rewards
+  useEffect(() => {
+    // Skip if no player or welcome screen is still showing
+    if (!player || showWelcomeScreen) return;
+  
     const lastCheckIn = player?.stats?.lastCheckIn;
     const now = Date.now();
     const oneDayMs = 24 * 60 * 60 * 1000;
     
-    // If player hasn't checked in today and has preferences for reminders
-    if (player && player.preferences.dailyCheckInReminder && (!lastCheckIn || now - lastCheckIn > oneDayMs)) {
-      addNotification({
-        id: `daily-checkin-${Date.now()}`,
-        type: 'quest_complete',
-        title: 'Daily Check-In Available!',
-        message: 'Don\'t forget to claim your daily rewards and maintain your streak!',
-        timestamp: Date.now(),
-        read: false
-      });
+    // Show reward popup if eligible for daily reward
+    if (!lastCheckIn || now - lastCheckIn > oneDayMs) {
+      // Slight delay to not show immediately on startup
+      const timer = setTimeout(() => {
+        setShowDailyReward(true);
+      }, 1500);
+      
+      return () => clearTimeout(timer);
     }
-  }, [player]);
+  }, [player, showWelcomeScreen]);
 
   // Check Supabase connection
   useEffect(() => {
     const initializeApplication = async () => {
       try {
-        console.info('Initializing application and checking Supabase connection...');
-        const connectionResult = await checkSupabaseConnection();
-        
-        if (!connectionResult.success) {
-          console.info('Using local data mode:', connectionResult.message);
-          
-          // Add notification about using local data mode with more detailed message
-          addNotification({
-            id: `supabase-mode-${Date.now()}`,
-            type: 'quest_complete',
-            title: 'Using Local Data Mode',
-            message: connectionResult.isConfigError ? 
-              'Supabase credentials not configured. Game is running with local data - progress will not be saved.' :
-              `Database connection error: ${connectionResult.error || 'Unknown error'}. Using local data mode.`,
-            timestamp: Date.now(),
-            read: false
-          });
-        } else {
-          console.info('Supabase connection successful');
-          addNotification({
-            id: `supabase-mode-${Date.now()}`,
-            type: 'quest_complete',
-            title: 'Cloud Sync Active',
-            message: 'Connected to Supabase. Your progress will be saved to the cloud.',
-            timestamp: Date.now(),
-            read: false
-          });
+        const isConnected = await checkSupabaseConnection();
+        if (!isConnected) {
+          console.log('Using local data mode');
         }
-        
-        // Initialize game data
-        await initializeGame();
       } catch (error) {
-        console.error('Error initializing application:', error instanceof Error ? error.message : error);
-        // Add notification about initialization issue
-        addNotification({
-          id: `init-error-${Date.now()}`,
-          type: 'quest_complete',
-          title: 'Initialization Error',
-          message: 'There was a problem starting the game. Some features may be unavailable.',
-          timestamp: Date.now(),
-          read: false
-        });
+        console.error('Failed to initialize application:', error);
       }
     };
 
@@ -302,146 +190,161 @@ function App() {
     mockRaces.forEach(race => addRace(race));
   }, []);
   
+  // Skip welcome screen when navigating directly if player exists
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('skip_intro') === 'true' || params.get('race') || params.get('horse')) {
+      setShowWelcomeScreen(false);
+    }
+  }, []);
+  
   // Background animation effect
   useEffect(() => {
     if (player) {
-      // Animate the background opacity for a subtle effect when player logs in
-      const animation = window.setTimeout(() => {
-        backgroundOpacity.set(0.1);
-      }, 500);
-      
-      return () => clearTimeout(animation);
+      const handleMouseMove = (e: MouseEvent) => {
+        backgroundX.set(e.clientX);
+        backgroundY.set(e.clientY);
+        backgroundOpacity.set(0.05);
+      };
+
+      window.addEventListener('mousemove', handleMouseMove);
+      return () => window.removeEventListener('mousemove', handleMouseMove);
     }
   }, [player]);
+
+  // If showing welcome screen, render that first
+  if (showWelcomeScreen) {
+    return <WelcomeScreen onContinue={() => setShowWelcomeScreen(false)} />;
+  }
 
   // If no wallet connected, show wallet connection
   if (!player) {
     return (
-      <motion.div 
-        className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 overflow-hidden"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        style={{ backgroundImage: background }}
-        onMouseMove={updateMousePosition}
-      >
-        <div className="fixed inset-0 -z-10">
-          <div className="absolute w-full h-full bg-grid-pattern opacity-10"></div>
-          {Array.from({ length: 20 }).map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute rounded-full bg-gradient-to-br from-purple-400 to-blue-400 opacity-10"
-              style={{
-                width: 100 + Math.random() * 200,
-                height: 100 + Math.random() * 200,
-                top: `${Math.random() * 100}%`,
-                left: `${Math.random() * 100}%`,
-                filter: 'blur(50px)'
-              }}
-              animate={{
-                x: [0, Math.random() * 50 - 25],
-                y: [0, Math.random() * 50 - 25],
-              }}
-              transition={{
-                duration: 10 + Math.random() * 20,
-                repeat: Infinity,
-                repeatType: 'reverse',
-                ease: 'easeInOut'
-              }}
-            />
-          ))}
-        </div>
-        
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
         <WalletConnection />
-      </motion.div>
+      </div>
     );
   }
-
-  const playerHorses = horses.filter(horse => horse.owner === player.walletAddress || horse.owner === 'current-player');
-  const marketplaceHorses = horses.filter(horse => horse.isForSale && horse.owner !== player.walletAddress);
-  
-  const renderCurrentView = () => {
-    switch (currentView) {
-      // Main tabs
-      case 'stable':
-        return <StableView horses={playerHorses} player={player} />;
-      case 'training':
-        return <TrainingCenter />;
-      case 'racing':
-        return <RacingView races={upcomingRaces} horses={horses} />;
-      case 'breeding':
-        return <BreedingCenter />;
-      case 'tournaments':
-        return <TournamentSystem 
-          playerHorses={horses.filter(h => h.isOwned)} 
-          onEnterTournament={(tournamentId, horseId) => {
-            console.log(`Entering tournament ${tournamentId} with horse ${horseId}`);
-            // Add tournament entry logic here
-          }} 
-        />;
-      case 'quests':
-        return <DailyQuests />;
-      case 'achievements':
-        return <AchievementSystem />;
-      case 'events':
-        return <SeasonalEvents />;
-      case 'analytics':
-        return <AnalyticsDashboard />;
-      case 'rewards':
-        return <DailyRewards />;
-      case 'marketplace':
-        return <Marketplace />;
-      case 'profile':
-        return <PlayerProfile />;
-      case 'guild':
-        return <GuildSystem />;
-      case 'ai-analytics':
-        return <PredictiveAnalytics />;
-      default:
-        return <StableView horses={playerHorses} />;
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 overflow-x-hidden">
       <Navigation />
       
+      {/* Daily Reward Popup */}
+      {showDailyReward && <DailyRewardPopup onClose={() => setShowDailyReward(false)} />}
+      
       <main className="container mx-auto px-6 py-8">
         {player?.walletAddress?.startsWith('guest_') && (
           <div className="mb-6 bg-yellow-50 border border-yellow-300 rounded-xl p-4 shadow-sm">
             <div className="flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
+              <div className="w-8 h-8 bg-yellow-200 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                <span className="text-yellow-700 text-sm">⚠️</span>
+              </div>
               <div>
                 <h2 className="font-semibold text-yellow-800 mb-1">Playing as Guest</h2>
                 <p className="text-sm text-yellow-700 mb-2">Your progress won't be saved when you leave. Connect a wallet to keep your progress.</p>
-                <button className="text-sm px-4 py-2 bg-white border border-yellow-400 rounded-lg hover:bg-yellow-50 text-yellow-700 transition-colors">
+                <button 
+                  onClick={() => {
+                    setPlayer(null);
+                    setCurrentView('stable');
+                  }}
+                  className="text-sm px-4 py-2 bg-white border border-yellow-400 rounded-lg hover:bg-yellow-50 text-yellow-700 transition-colors"
+                >
                   Connect Wallet Now
                 </button>
               </div>
             </div>
           </div>
         )}
-        
+
         <AnimatePresence mode="wait">
-          <motion.div
-            key={currentView}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-          >
-            {renderCurrentView()}
-          </motion.div>
+          {currentView === 'stable' && (
+            <motion.div
+              key="stable"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <StableView horses={horses} player={player} />
+            </motion.div>
+          )}
+
+          {currentView === 'racing' && (
+            <motion.div
+              key="racing"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <RacingView races={upcomingRaces} horses={horses} />
+            </motion.div>
+          )}
+
+          {currentView === 'marketplace' && (
+            <motion.div
+              key="marketplace"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Marketplace />
+            </motion.div>
+          )}
+
+          {currentView === 'leaderboard' && (
+            <motion.div
+              key="leaderboard"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Leaderboard />
+            </motion.div>
+          )}
+
+          {currentView === 'profile' && (
+            <motion.div
+              key="profile"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <PlayerProfile />
+            </motion.div>
+          )}
+
+          {currentView === 'analytics' && (
+            <motion.div
+              key="analytics"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <AnalyticsDashboard />
+            </motion.div>
+          )}
         </AnimatePresence>
-        
-        {/* AI Assistant - Always Available */}
-        <AIAssistant />
       </main>
+
+      {/* Global Components */}
+      <NotificationSystem />
+      <AchievementSystem />
+      <SeasonalEvents />
+      <DailyRewards />
     </div>
   );
 }
 
 // Stable View Component
-const StableView: React.FC<{ horses: HorseNFT[], player: Player }> = ({ horses, player }) => {
+const StableView: React.FC<{ horses: HorseNFT[], player?: Player }> = ({ horses, player }) => {
+  if (!player) return null;
+  
   const { currentView } = useGameStore();
   
   return (
@@ -449,47 +352,33 @@ const StableView: React.FC<{ horses: HorseNFT[], player: Player }> = ({ horses, 
       {/* Welcome Header */}
       {/* Dynamic welcome message based on time of day */}
       <div className="bg-white rounded-2xl shadow-xl p-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">
-              Welcome back, {player?.username}! 🏇
-          <div>
-            <motion.p 
-              className="text-2xl font-bold text-gray-800"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.3 }}
-            >
-              {((player.stats.totalEarnings) / 1000).toFixed(1)}K
-            </motion.p>
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div className="flex-1">
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">Welcome back, {player.username}! 🏇</h1>
+            <p className="text-gray-600">Manage your stable of {horses.length} magnificent horses</p>
           </div>
           
-          <div className="flex items-center gap-4">
-            <div className="text-center">
-              <motion.p 
-                className="text-2xl font-bold text-green-600"
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-              >
-                {player.assets.turfBalance.toLocaleString()} $TURF
-              </motion.p>
-              <p className="text-sm text-gray-600">Available Balance</p>
-            </div>
-          </div>
+          <CurrencyDisplay showHelp={true} />
         </div>
       </div>
 
-      {/* Quick Stats */}
+      {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white rounded-xl shadow-lg p-6">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-              <span className="text-2xl">🐎</span>
+              <span className="text-2xl">🏇</span>
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-800">{horses.length}</p>
-              <p className="text-sm text-gray-600">Total Horses</p>
+              <motion.p 
+                className="text-2xl font-bold text-gray-800"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.1 }}
+              >
+                {horses.length}
+              </motion.p>
+              <p className="text-sm text-gray-600">Horses</p>
             </div>
           </div>
         </div>
@@ -500,8 +389,15 @@ const StableView: React.FC<{ horses: HorseNFT[], player: Player }> = ({ horses, 
               <span className="text-2xl">🏆</span>
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-800">{player?.stats.wins}</p>
-              <p className="text-sm text-gray-600">Total Wins</p>
+              <motion.p 
+                className="text-2xl font-bold text-gray-800"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.2 }}
+              >
+                {player.stats.wins}
+              </motion.p>
+              <p className="text-sm text-gray-600">Wins</p>
             </div>
           </div>
         </div>
@@ -509,43 +405,45 @@ const StableView: React.FC<{ horses: HorseNFT[], player: Player }> = ({ horses, 
         <div className="bg-white rounded-xl shadow-lg p-6">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-              <span className="text-2xl">💰</span>
+              <span className="text-2xl">⭐</span>
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-800">
-                {((player?.stats.totalEarnings || 0) / 1000).toFixed(1)}K
-              </p>
-              <p className="text-sm text-gray-600">Total Earnings</p>
+              <motion.p 
+                className="text-2xl font-bold text-gray-800"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.4 }}
+              >
+                {player.stats.reputation}
+              </motion.p>
+              <p className="text-sm text-gray-600">Reputation</p>
             </div>
           </div>
         </div>
         
         <div className="bg-white rounded-xl shadow-lg p-6">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
-              <span className="text-2xl">⭐</span>
+            <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center">
+              <span className="text-2xl">🎮</span>
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-800">{player?.stats.reputation}</p>
-              <p className="text-sm text-gray-600">Reputation</p>
+              <p className="text-2xl font-bold text-gray-800">
+                {player?.walletAddress?.startsWith('guest_') ? 
+                  ((player?.assets?.guestCoins || 0).toLocaleString()) : 
+                  ((player?.stats?.totalEarnings || 0) / 1000).toFixed(1) + 'K'
+                }
+              </p>
+              <p className="text-sm text-gray-600">
+                {player?.walletAddress?.startsWith('guest_') ? 'Guest Coins' : 'Total Earnings'}
+              </p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Horse Grid */}
-      <div>
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-800">Your Horses</h2>
-          <motion.button 
-            className="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-semibold transition-colors"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            Buy New Horse
-          </motion.button>
-        </div>
-        
+      <div className="bg-white rounded-2xl shadow-lg p-6">
+        <h2 className="text-xl font-bold text-gray-800 mb-6">Your Horses</h2>
         {horses.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {horses.map((horse) => (
@@ -553,71 +451,111 @@ const StableView: React.FC<{ horses: HorseNFT[], player: Player }> = ({ horses, 
             ))}
           </div>
         ) : (
-          <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
-            <div className="text-6xl mb-4">🐎</div>
+          <div className="text-center py-12">
+            <div className="w-20 h-20 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
+              <span className="text-3xl">🏇</span>
+            </div>
             <h3 className="text-xl font-bold text-gray-800 mb-2">No Horses Yet</h3>
-            <p className="text-gray-600 mb-6">Start building your stable by purchasing your first horse</p>
-            <motion.button 
-              className="px-8 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-semibold transition-colors"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Browse Marketplace
-            </motion.button>
+            <p className="text-gray-600 mb-6">Visit the marketplace to purchase your first horse!</p>
+            <button className="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-semibold transition-colors">
+              Visit Marketplace
+            </button>
           </div>
         )}
       </div>
+
+      {/* ... (rest of StableView component remains the same) */}
     </div>
   );
 };
 
-// Racing View Component
+// ... (RacingView component)
+
 const RacingView: React.FC<{ races: Race[]; horses: HorseNFT[] }> = ({ races, horses }) => {
-  const [selectedRace, setSelectedRace] = React.useState<Race | null>(races[0] || null);
-  const [selectedHorses, setSelectedHorses] = React.useState<HorseNFT[]>([]);
+  const [selectedRace, setSelectedRace] = useState<Race | null>(null);
+  const [selectedHorses, setSelectedHorses] = useState<HorseNFT[]>([]);
+  const { player, setCurrentView } = useGameStore();
+  
+  // Filter horses owned by player
+  const playerHorses = horses.filter(horse => horse.owner === player?.walletAddress);
 
-  React.useEffect(() => {
-    if (selectedRace) {
-      // Select 6-8 random horses for the race
-      const raceHorses = horses
-        .filter(h => !h.isForSale)
-        .sort(() => Math.random() - 0.5)
-        .slice(0, 6 + Math.floor(Math.random() * 3));
-      setSelectedHorses(raceHorses);
-    }
-  }, [selectedRace, horses]);
+  // ... (previous code remains the same until the motion.p elements)
 
-  return (
+  return playerHorses.length > 0 ? (
     <div className="space-y-8">
-      <div className="bg-white rounded-2xl shadow-xl p-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">Racing Center 🏁</h1>
-        <p className="text-gray-600">Watch thrilling races and place your bets</p>
-      </div>
-
-      {/* Race Selection */}
-      <div className="bg-white rounded-2xl shadow-lg p-6">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">Upcoming Races</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {races.map((race) => (
-            <motion.div
-              key={race.id}
-              onClick={() => setSelectedRace(race)}
-              className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                selectedRace?.id === race.id
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-              }`}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <h3 className="font-bold text-gray-800 mb-2">{race.name}</h3>
-              <div className="space-y-1 text-sm text-gray-600">
-                <p>{race.surface} • {race.distance}m</p>
-                <p>Prize: {race.prizePool.toLocaleString()} $TURF</p>
-                <p>Entry: {race.entryFee.toLocaleString()} $TURF</p>
+      <div className="flex flex-col md:flex-row gap-4 items-center md:items-start">
+        <div className="w-full md:w-2/3">
+          <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8">
+            <div className="flex items-center justify-between flex-wrap gap-4 mb-6">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-800 mb-2">Racing Center 🏁</h1>
+                <p className="text-gray-600">Watch thrilling races and place your bets</p>
               </div>
-            </motion.div>
-          ))}
+              <CurrencyDisplay />
+            </div>
+            
+            {/* Race Selection */}
+            <div className="mb-6">
+              <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <Trophy className="w-5 h-5 text-amber-500" />
+                Featured Races
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                {races.slice(0, 4).map((race) => (
+                  <motion.div
+                    key={race.id}
+                    onClick={() => setSelectedRace(race)}
+                    className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                      selectedRace?.id === race.id
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                    }`}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <h3 className="font-bold text-gray-800 mb-1">{race.name}</h3>
+                    <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm text-gray-600">
+                      <p>{race.surface}</p>
+                      <p>{race.distance}m</p>
+                      <p>Prize: {race.prizePool.toLocaleString()} {player?.walletAddress?.startsWith('guest_') ? 'GC' : '$TURF'}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+              
+              <div className="flex justify-end">
+                <button className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">
+                  View all races
+                  <span className="text-xs">→</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div className="w-full md:w-1/3">
+          <div className="bg-white rounded-2xl shadow-xl p-6">
+            <h2 className="text-lg font-bold text-gray-800 mb-4">My Race Entries</h2>
+            {playerHorses.length > 0 ? (
+              <div className="space-y-3">
+                <motion.button
+                  className="w-full py-3 px-4 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Star className="w-5 h-5" />
+                  Enter a Race
+                </motion.button>
+                <p className="text-sm text-gray-600 text-center">
+                  No upcoming races for your horses
+                </p>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-600 text-center">
+                You need horses to enter races
+              </p>
+            )}
+          </div>
         </div>
       </div>
 
@@ -628,34 +566,36 @@ const RacingView: React.FC<{ races: Race[]; horses: HorseNFT[] }> = ({ races, ho
             <RaceTrack race={selectedRace} horses={selectedHorses} />
           </div>
           <div>
-            <motion.p 
-              className="text-2xl font-bold text-gray-800"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.4 }}
-            >
-              {player.stats.reputation}
-            </motion.p>
-              className="text-2xl font-bold text-gray-800"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.2 }}
-            >
-              {player.stats.wins}
-            </motion.p>
-              className="text-2xl font-bold text-gray-800"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.1 }}
-            >
-              {horses.length}
-            </motion.p>
+            <BettingPanel race={selectedRace} horses={selectedHorses} />
           </div>
         </div>
       )}
     </div>
+  ) : (
+    <div className="text-center py-12">
+      <motion.div 
+        className="bg-white rounded-2xl shadow-lg p-8 max-w-xl mx-auto"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <div className="w-20 h-20 mx-auto bg-blue-100 rounded-full flex items-center justify-center mb-4">
+          <Trophy className="w-10 h-10 text-blue-600" />
+        </div>
+        <h2 className="text-2xl font-bold text-gray-800 mb-3">Ready to Race?</h2>
+        <p className="text-gray-600 mb-6">
+          You need horses to participate in races. Visit the marketplace to purchase your first champion!
+        </p>
+        <motion.button
+          onClick={() => setCurrentView('marketplace')}
+          className="px-8 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-semibold transition-colors"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          Visit Marketplace
+        </motion.button>
+      </motion.div>
+    </div>
   );
 };
-
 
 export default App;
