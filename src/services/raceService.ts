@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { safeSupabaseOperation } from './supabase';
 import { Race, RaceEntry, RaceResult, Bet } from '../types';
 import playerService from './playerService';
 
@@ -7,20 +8,27 @@ export const raceService = {
    * Get all upcoming races
    */
   async getUpcomingRaces(): Promise<Race[]> {
-    const now = new Date().toISOString();
-    
-    const { data, error } = await supabase
-      .from('races')
-      .select('*')
-      .gt('racetime', now)
-      .order('racetime', { ascending: true });
-
-    if (error) {
-      console.error('Error fetching upcoming races:', error);
-      return [];
-    }
-
-    return data.map(race => ({
+    return await safeSupabaseOperation(async () => {
+      if (!supabase) return [];
+      
+      const now = new Date().toISOString();
+      
+      const { data, error } = await supabase
+        .from('races')
+        .select('*')
+        .gt('racetime', now)
+        .order('racetime', { ascending: true });
+  
+      if (error) {
+        throw error;
+      }
+  
+      return data.map(race => this.mapDatabaseToRace(race));
+    }, []);
+  },
+  
+  mapDatabaseToRace(race): Race {
+    return {
       id: race.id,
       name: race.name,
       type: race.type as any,
@@ -38,7 +46,7 @@ export const raceService = {
       raceTime: new Date(race.racetime).getTime(),
       results: race.resultsdata as RaceResult[] | undefined,
       status: race.status as any
-    }));
+    };
   },
 
   /**

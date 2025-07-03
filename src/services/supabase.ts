@@ -1,35 +1,46 @@
 import { createClient } from '@supabase/supabase-js';
 
 // Get Supabase URL and Key from environment variables
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 // Check if credentials are properly configured (not placeholder values)
 const hasValidCredentials = () => {
   return supabaseUrl && 
          supabaseAnonKey && 
-         supabaseUrl !== 'your-project-url.supabase.co' &&
-         supabaseAnonKey !== 'your-anon-key' &&
          supabaseUrl.includes('supabase.co');
 };
 
 // Create Supabase client only if we have valid credentials
-export const supabase = hasValidCredentials() 
-  ? createClient(supabaseUrl, supabaseAnonKey, {
+export const supabase = (() => {
+  try {
+    if (!hasValidCredentials()) {
+      console.warn('Using demo mode: Supabase credentials missing or invalid');
+      return null;
+    }
+    
+    // Prepend https:// if not present
+    const formattedUrl = supabaseUrl.startsWith('http') ? supabaseUrl : `https://${supabaseUrl}`;
+    
+    return createClient(formattedUrl, supabaseAnonKey, {
       auth: {
         persistSession: true,
         autoRefreshToken: true,
         storage: typeof window !== 'undefined' ? window.localStorage : undefined
       }
-    })
-  : null;
+    });
+  } catch (error) {
+    console.error('Failed to initialize Supabase client:', error);
+    return null;
+  }
+})();
 
 // Function to check if Supabase is properly configured and connected
 export const checkSupabaseConnection = async () => {
   try {
     // First check if we have valid credentials
     if (!hasValidCredentials()) {
-      console.warn('Supabase credentials not configured or using placeholder values');
+      console.warn('Supabase credentials missing or invalid - using demo mode');
       return { 
         success: false, 
         message: 'Supabase not configured - running in demo mode',
@@ -40,7 +51,7 @@ export const checkSupabaseConnection = async () => {
     if (!supabase) {
       return { 
         success: false, 
-        message: 'Supabase client not initialized',
+        message: 'Supabase client not initialized - running in demo mode',
         isConfigError: true
       };
     }
