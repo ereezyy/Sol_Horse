@@ -1,14 +1,15 @@
 import { createClient } from '@supabase/supabase-js';
 
 // Get Supabase URL and Key from environment variables
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 // Create and export Supabase client
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '', {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
+    storage: typeof window !== 'undefined' ? window.localStorage : undefined
   }
 });
 
@@ -16,17 +17,19 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 export const checkSupabaseConnection = async () => {
   try {
     if (!supabaseUrl || !supabaseAnonKey) {
-      return { success: false, message: 'Supabase credentials not found in environment variables' };
+      console.warn('Supabase credentials not found in environment variables');
+      return { 
+        success: false, 
+        message: 'Using local data mode - Supabase credentials not configured',
+        isConfigError: true
+      };
     }
     
-    // Test the connection by fetching a single row from the public.players table
-    const { data, error, status } = await supabase
-      .from('players')
-      .select('id')
-      .limit(1);
+    // Test the connection with a lightweight query
+    const { error } = await supabase.from('players').select('count', { count: 'exact', head: true });
     
-    if (error && status !== 406) {
-      throw error;
+    if (error) {
+      throw new Error(`Supabase query failed: ${error.message}`);
     }
     
     return { success: true, message: 'Supabase connection successful' };
@@ -34,8 +37,14 @@ export const checkSupabaseConnection = async () => {
     console.error('Supabase connection failed:', error);
     return { 
       success: false, 
-      message: 'Supabase connection failed', 
+      message: 'Unable to connect to Supabase. Using local data mode.', 
       error: error instanceof Error ? error.message : String(error) 
     };
   }
+};
+
+// Helper function to determine if we should use local data
+export const isUsingLocalData = async (): Promise<boolean> => {
+  const connectionResult = await checkSupabaseConnection();
+  return !connectionResult.success;
 };
