@@ -19,8 +19,9 @@ export const tournamentService = {
       
       return data.map(this.mapDatabaseToTournament);
     }, []);
-    }
+  },
 
+  mapDatabaseToTournament(data) {
     return data.map(t => ({
       id: t.id,
       name: t.name,
@@ -104,6 +105,8 @@ export const tournamentService = {
         participantsdata: participants,
         updatedat: new Date().toISOString()
       })
+      .eq('id', tournamentId);
+
     return await safeSupabaseOperation(async () => {
       if (!supabase) return true; // Always succeed in demo mode
       
@@ -129,34 +132,5 @@ export const tournamentService = {
       if (updateError) throw updateError;
       return true;
     }, true);
-
-    const { error } = await supabase
-      .from('tournaments')
-    return await safeSupabaseOperation(async () => {
-      if (!supabase) return true; // Always succeed in demo mode
-      
-      const tournamentData = this.mapTournamentToDatabase(updates as Tournament);
-      
-      const { error } = await supabase
-        .from('tournaments')
-        .update(tournamentData)
-        .eq('id', tournamentId);
-      
-      if (error) throw error;
-      return true;
-    }, true);
   }
 };
-
-    return await safeSupabaseOperation(async () => {
-      if (!supabase) return true; // Always succeed in demo mode
-      
-      const tournamentData = this.mapTournamentToDatabase(tournament);
-      
-      const { error } = await supabase
-        .from('tournaments')
-        .insert(tournamentData);
-      
-      if (error) throw error;
-      return true;
-    }, true);
