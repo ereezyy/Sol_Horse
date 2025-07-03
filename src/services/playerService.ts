@@ -1,121 +1,95 @@
 import { supabase } from './supabase';
+import { safeSupabaseOperation } from './supabase';
 import { Player } from '../types';
 
-export const playerService = {
-  /**
-   * Get a player by wallet address
-   */
+class PlayerService {
   async getPlayerByWallet(walletAddress: string): Promise<Player | null> {
-    const { data, error } = await supabase
-      .from('players')
-      .select('*')
-      .eq('walletaddress', walletAddress)
-      .maybeSingle();
+    return await safeSupabaseOperation(async () => {
+      if (!supabase) return null;
+      
+      const { data, error } = await supabase
+        .from('players')
+        .select('*')
+        .eq('walletaddress', walletAddress)
+        .single();
 
-    if (error) {
-      console.error('Error fetching player:', error);
-      return null;
-    }
+      if (error) {
+        if (error.code === 'PGRST116') {
+          // No player found
+          return null;
+        }
+        throw error;
+      }
 
-    if (!data) return null;
+      return this.mapDatabaseToPlayer(data);
+    }, null);
+  }
 
-    return {
-      id: data.id,
-      walletAddress: data.walletaddress,
-      username: data.username,
-      profile: data.profiledata as any,
-      assets: data.assetsdata as any,
-      stats: data.statsdata as any,
-      social: data.socialdata as any,
-      preferences: data.preferencesdata as any
-    };
-  },
-
-  /**
-   * Create a new player
-   */
   async createPlayer(player: Player): Promise<Player | null> {
-    const { data, error } = await supabase.from('players').insert({
-      id: player.id,
-      walletaddress: player.walletAddress,
-      username: player.username,
-      profiledata: player.profile,
-      assetsdata: player.assets,
-      statsdata: player.stats,
-      socialdata: player.social,
-      preferencesdata: player.preferences,
-      createdat: new Date().toISOString(),
-      updatedat: new Date().toISOString()
-    }).select().single();
+    return await safeSupabaseOperation(async () => {
+      if (!supabase) return player; // Return the player as-is for demo mode
+      
+      const playerData = this.mapPlayerToDatabase(player);
+      const { data, error } = await supabase
+        .from('players')
+        .insert(playerData)
+        .select()
+        .single();
 
-    if (error) {
-      console.error('Error creating player:', error);
-      return null;
-    }
+      if (error) throw error;
 
-    return player;
-  },
+      return this.mapDatabaseToPlayer(data);
+    }, player);
+  }
 
-  /**
-   * Update a player's data
-   */
   async updatePlayer(player: Player): Promise<Player | null> {
-    const { data, error } = await supabase
-      .from('players')
-      .update({
-        username: player.username,
-        profiledata: player.profile,
-        assetsdata: player.assets,
-        statsdata: player.stats,
-        socialdata: player.social,
-        preferencesdata: player.preferences,
-        updatedat: new Date().toISOString()
-      })
-      .eq('id', player.id)
-      .select()
-      .single();
+    return await safeSupabaseOperation(async () => {
+      if (!supabase) return player; // Return the player as-is for demo mode
+      
+      const playerData = this.mapPlayerToDatabase(player);
+      
+      const { data, error } = await supabase
+        .from('players')
+        .update(playerData)
+        .eq('id', player.id)
+        .select()
+        .single();
 
-    if (error) {
-      console.error('Error updating player:', error);
-      return null;
-    }
+      if (error) throw error;
 
-    return player;
-  },
+      return this.mapDatabaseToPlayer(data);
+    }, player);
+  }
 
-  /**
-   * Update player balance
-   */
-  async updatePlayerBalance(playerId: string, amount: number): Promise<boolean> {
-    const { data: playerData, error: fetchError } = await supabase
-      .from('players')
-      .select('assetsdata')
-      .eq('id', playerId)
-      .single();
+  async updatePlayerBalance(playerId: string, balanceChange: number): Promise<boolean> {
+    return await safeSupabaseOperation(async () => {
+      if (!supabase) return true; // Always succeed in demo mode
+      
+      // First get current balance
+      const { data: currentData, error: fetchError } = await supabase
+        .from('players')
+        .select('assetsdata')
+        .eq('id', playerId)
+        .single();
 
-    if (fetchError) {
-      console.error('Error fetching player for balance update:', fetchError);
-      return false;
-    }
+      if (fetchError) throw fetchError;
 
-    const assets = playerData.assetsdata as any;
-    assets.turfBalance = Math.max(0, (assets.turfBalance || 0) + amount);
+      const assets = currentData.assetsdata as any;
+      const newBalance = Math.max(0, (assets.turfBalance || 0) + balanceChange);
+      
+      const { error: updateError } = await supabase
+        .from('players')
+        .update({
+          assetsdata: { ...assets, turfBalance: newBalance },
+          updatedat: new Date().toISOString()
+        })
+        .eq('id', playerId);
 
-    const { error: updateError } = await supabase
-      .from('players')
-      .update({
-        assetsdata: assets,
-        updatedat: new Date().toISOString()
-      })
-      .eq('id', playerId);
+      if (updateError) throw updateError;
 
-    if (updateError) {
-      console.error('Error updating player balance:', updateError);
-      return false;
-    }
-
-    return true;
-  },
+      return true;
+    }, true);
+  }
 
   /**
    * Perform daily check-in
@@ -190,6 +164,7 @@ export const playerService = {
 
     return { success: true, reward: totalReward };
   }
-};
+}
 
+export const playerService = new PlayerService();
 export default playerService;

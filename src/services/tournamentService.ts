@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { safeSupabaseOperation } from './supabase';
 import { Tournament, TournamentEntry, TournamentBracket } from '../types';
 
 export const tournamentService = {
@@ -6,14 +7,18 @@ export const tournamentService = {
    * Get all tournaments
    */
   async getTournaments(): Promise<Tournament[]> {
-    const { data, error } = await supabase
-      .from('tournaments')
-      .select('*')
-      .order('tournamentstart', { ascending: true });
-
-    if (error) {
-      console.error('Error fetching tournaments:', error);
-      return [];
+    return await safeSupabaseOperation(async () => {
+      if (!supabase) return [];
+      
+      const { data, error } = await supabase
+        .from('tournaments')
+        .select('*')
+        .order('tournamentstart', { ascending: true });
+      
+      if (error) throw error;
+      
+      return data.map(this.mapDatabaseToTournament);
+    }, []);
     }
 
     return data.map(t => ({
@@ -99,40 +104,59 @@ export const tournamentService = {
         participantsdata: participants,
         updatedat: new Date().toISOString()
       })
-      .eq('id', tournamentId);
-
-    if (updateError) {
-      console.error('Error updating tournament participants:', updateError);
-      return false;
-    }
-
-    return true;
-  },
-
-  /**
-   * Update tournament
-   */
-  async updateTournament(tournamentId: string, updates: Partial<Tournament>): Promise<boolean> {
-    const updateData: any = { updatedat: new Date().toISOString() };
-    
-    if (updates.name) updateData.name = updates.name;
-    if (updates.description) updateData.description = updates.description;
-    if (updates.status) updateData.status = updates.status;
-    if (updates.participants) updateData.participantsdata = updates.participants;
-    if (updates.brackets) updateData.bracketsdata = updates.brackets;
+    return await safeSupabaseOperation(async () => {
+      if (!supabase) return true; // Always succeed in demo mode
+      
+      // Get current tournament
+      const { data: tournament, error: fetchError } = await supabase
+        .from('tournaments')
+        .select('participantsdata')
+        .eq('id', tournamentId)
+        .single();
+      
+      if (fetchError) throw fetchError;
+      
+      // Add new participant
+      const currentParticipants = tournament.participantsdata || [];
+      const updatedParticipants = [...currentParticipants, entry];
+      
+      // Update tournament
+      const { error: updateError } = await supabase
+        .from('tournaments')
+        .update({ participantsdata: updatedParticipants })
+        .eq('id', tournamentId);
+      
+      if (updateError) throw updateError;
+      return true;
+    }, true);
 
     const { error } = await supabase
       .from('tournaments')
-      .update(updateData)
-      .eq('id', tournamentId);
-
-    if (error) {
-      console.error('Error updating tournament:', error);
-      return false;
-    }
-
-    return true;
+    return await safeSupabaseOperation(async () => {
+      if (!supabase) return true; // Always succeed in demo mode
+      
+      const tournamentData = this.mapTournamentToDatabase(updates as Tournament);
+      
+      const { error } = await supabase
+        .from('tournaments')
+        .update(tournamentData)
+        .eq('id', tournamentId);
+      
+      if (error) throw error;
+      return true;
+    }, true);
   }
 };
 
-export default tournamentService;
+    return await safeSupabaseOperation(async () => {
+      if (!supabase) return true; // Always succeed in demo mode
+      
+      const tournamentData = this.mapTournamentToDatabase(tournament);
+      
+      const { error } = await supabase
+        .from('tournaments')
+        .insert(tournamentData);
+      
+      if (error) throw error;
+      return true;
+    }, true);

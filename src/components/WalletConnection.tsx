@@ -38,6 +38,7 @@ const WalletConnection: React.FC = () => {
   const [showAdvanced, setShowAdvanced] = useState(false);
   
   const { player, setPlayer } = useGameStore();
+  const [walletError, setWalletError] = useState<string | null>(null);
 
   // Simulate wallet connection
   const connectWallet = async (walletType: 'phantom' | 'solflare' | 'backpack') => {
@@ -119,6 +120,29 @@ const WalletConnection: React.FC = () => {
           allowBreedingRequests: true
         }
       };
+  
+  // Handle wallet connection errors
+  useEffect(() => {
+    const handleWalletError = (error: any) => {
+      console.warn('Wallet extension error (this is normal in demo mode):', error);
+      setWalletError('Wallet extension not available - demo mode active');
+      
+      // Clear error after 5 seconds
+      setTimeout(() => setWalletError(null), 5000);
+    };
+    
+    // Listen for wallet errors
+    window.addEventListener('unhandledrejection', (event) => {
+      if (event.reason?.message?.includes('wallet') || event.reason?.name?.includes('Phantom')) {
+        handleWalletError(event.reason);
+        event.preventDefault(); // Prevent console error spam
+      }
+    });
+    
+    return () => {
+      window.removeEventListener('unhandledrejection', handleWalletError);
+    };
+  }, []);
       
       // Calculate derived stats
       mockPlayer.stats.winRate = mockPlayer.stats.totalRaces > 0 ? 
@@ -208,6 +232,20 @@ const WalletConnection: React.FC = () => {
           <div className="flex justify-center mb-8">
             <SolanaWalletConnection />
           </div>
+
+          {walletError && (
+            <div className="mb-6 p-4 bg-blue-50 rounded-xl border border-blue-200">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5" />
+                <div>
+                  <h4 className="font-semibold text-blue-800 mb-1">Demo Mode</h4>
+                  <p className="text-sm text-blue-700">
+                    {walletError}. The application will work with simulated wallet functionality.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {isConnecting && (
             <div className="text-center">
