@@ -361,21 +361,32 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   // Data fetching actions
-  fetchPlayerData: async (walletAddress: string) => {
-    try {
-      const player = await playerService.getPlayerByWallet(walletAddress);
-      if (player) {
-        set({ player });
+  fetchPlayerData: async (walletAddress: string) => set(async (state) => {
+    const player = await playerService.getPlayerByWallet(walletAddress);
+    
+    // In demo mode or if no player exists, create a mock player
+    if (!player) {
+      console.log('No player found or using demo mode - creating mock player');
+      const mockPlayer = createMockPlayer();
+      mockPlayer.walletAddress = walletAddress || mockPlayer.walletAddress;
+      
+      try {
+        // Try to create player in database (will be ignored in demo mode)
+        await playerService.createPlayer(mockPlayer);
+      } catch (error) {
+        console.warn('Could not save mock player to database:', error);
       }
-    } catch (error) {
-      console.error('Error fetching player data:', error);
+      
+      return { player: mockPlayer };
     }
-  },
+    
+    return { player };
+  }),
 
-  fetchHorses: async () => {
+  fetchHorses: async () => set(async (state) => {
     const { player } = get();
-    if (!player) return;
-
+    if (!player) return state;
+    
     try {
       // Fetch owned horses
       const playerHorses = await horseService.getPlayerHorses(player.walletAddress);
@@ -392,29 +403,33 @@ export const useGameStore = create<GameStore>((set, get) => ({
         }
       }
       
-      set({ horses: allHorses });
+      return { horses: allHorses };
     } catch (error) {
-      console.error('Error fetching horses:', error);
+      console.error('Error fetching horses, using mock data:', error);
+      // Return current state if there's an error
+      return state;
     }
-  },
-
-  fetchRaces: async () => {
+  }),
+  
+  fetchRaces: async () => set(async (state) => {
     try {
       const races = await raceService.getUpcomingRaces();
-      set({ upcomingRaces: races });
+      return { upcomingRaces: races };
     } catch (error) {
-      console.error('Error fetching races:', error);
+      console.error('Error fetching races, using mock data:', error);
+      return state;
     }
-  },
+  }),
 
-  fetchTournaments: async () => {
+  fetchTournaments: async () => set(async (state) => {
     try {
       const tournaments = await tournamentService.getTournaments();
-      set({ tournaments });
+      return { tournaments };
     } catch (error) {
-      console.error('Error fetching tournaments:', error);
+      console.error('Error fetching tournaments, using mock data:', error);
+      return state;
     }
-  },
+  }),
 
   initializeGame: async () => {
     try {
