@@ -29,6 +29,7 @@ const BettingPanel: React.FC<BettingPanelProps> = ({ race, horses }) => {
   const [showConfirmation, setShowConfirmation] = useState(false);
   
   const { player, placeBet, addNotification } = useGameStore();
+  const isGuest = player?.walletAddress?.startsWith('guest_');
 
   // Calculate dynamic odds based on horse performance
   const calculateOdds = (horse: HorseNFT): number => {
@@ -66,8 +67,14 @@ const BettingPanel: React.FC<BettingPanelProps> = ({ race, horses }) => {
 
   const canPlaceBet = (): boolean => {
     if (!player || !selectedHorse || betAmount <= 0) return false;
-    if (player.assets.turfBalance < betAmount) return false;
     
+    // Check appropriate currency based on account type
+    if (isGuest) {
+      if ((player.assets.guestCoins || 0) < betAmount) return false;
+    } else {
+      if (player.assets.turfBalance < betAmount) return false;
+    }
+
     if (betType === 'Exacta' && !secondPick) return false;
     if (betType === 'Trifecta' && (!secondPick || !thirdPick)) return false;
     
@@ -77,28 +84,67 @@ const BettingPanel: React.FC<BettingPanelProps> = ({ race, horses }) => {
   const handlePlaceBet = () => {
     if (!canPlaceBet()) return;
     
-    const bet: Bet = {
-      id: Date.now().toString(),
-      playerId: player!.id,
-      raceId: race.id,
-      horseId: selectedHorse!,
-      type: betType,
-      amount: betAmount,
-      odds: calculateOdds(horses.find(h => h.id === selectedHorse)!),
-      potentialPayout: calculatePayout(),
-      status: 'Active'
-    };
-    
-    placeBet(bet);
-    
-    addNotification({
-      id: Date.now().toString(),
-      type: 'race_result',
-      title: 'Bet Placed!',
-      message: `${betType} bet of ${betAmount} $TURF placed on ${horses.find(h => h.id === selectedHorse)?.name}`,
-      timestamp: Date.now(),
-      read: false
-    });
+    try {
+      const bet: Bet = {
+        id: Date.now().toString(),
+        playerId: player!.id,
+        raceId: race.id,
+        horseId: selectedHorse!,
+        type: betType,
+        amount: betAmount,
+        odds: calculateOdds(horses.find(h => h.id === selectedHorse)!),
+        potentialPayout: calculatePayout(),
+        status: 'Active'
+      };
+      
+      // For guest mode, we'll handle betting separately
+      if (isGuest) {
+        // Update guest player's coins directly
+        const updatedPlayer = {
+          ...player,
+          assets: {
+            ...player.assets,
+            guestCoins: (player.assets.guestCoins || 0) - betAmount
+          }
+        };
+        
+        // Update the player state
+        useGameStore.setState({ player: updatedPlayer });
+        
+        // We'll still add the notification but handle it differently
+        addNotification({
+          id: Date.now().toString(),
+          type: 'race_result',
+          title: 'Bet Placed with Guest Coins',
+          message: `${betType} bet of ${betAmount} GC placed on ${horses.find(h => h.id === selectedHorse)?.name}`,
+          timestamp: Date.now(),
+          read: false
+        });
+      } else {
+        // Normal bet processing for wallet users
+        placeBet(bet);
+        
+        addNotification({
+          id: Date.now().toString(),
+          type: 'race_result',
+          title: 'Bet Placed!',
+          message: `${betType} bet of ${betAmount} $TURF placed on ${horses.find(h => h.id === selectedHorse)?.name}`,
+          timestamp: Date.now(),
+          read: false
+        });
+      }
+    } catch (error) {
+      console.error('Error placing bet:', error);
+      addNotification({
+        id: Date.now().toString(),
+        type: 'race_result',
+        title: 'Betting Error',
+        message: 'There was a problem placing your bet. Please try again.',
+        timestamp: Date.now(),
+        read: false
+      });
+      return;
+    }
     
     setShowConfirmation(false);
     setSelectedHorse(null);
@@ -134,7 +180,10 @@ const BettingPanel: React.FC<BettingPanelProps> = ({ race, horses }) => {
         <div className="text-right">
           <p className="text-sm text-gray-600">Available Balance</p>
           <p className="text-lg font-bold text-green-600">
-            {player?.assets.turfBalance.toLocaleString() || '0'} $TURF
+            {isGuest 
+              ? `${player?.assets.guestCoins?.toLocaleString() || '0'} GC` 
+              : `${player?.assets.turfBalance.toLocaleString() || '0'} $TURF`
+            }
           </p>
         </div>
       </div>
@@ -349,7 +398,7 @@ const BettingPanel: React.FC<BettingPanelProps> = ({ race, horses }) => {
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Amount:</span>
-              <span className="font-medium">{betAmount.toLocaleString()} $TURF</span>
+              <span className="font-medium">{betAmount.toLocaleString()} {isGuest ? 'GC' : '$TURF'}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Odds:</span>
@@ -357,7 +406,7 @@ const BettingPanel: React.FC<BettingPanelProps> = ({ race, horses }) => {
             </div>
             <div className="border-t border-blue-200 pt-2 flex justify-between">
               <span className="font-semibold text-gray-800">Potential Payout:</span>
-              <span className="font-bold text-green-600">{calculatePayout().toLocaleString()} $TURF</span>
+              <span className="font-bold text-green-600">{calculatePayout().toLocaleString()} {isGuest ? 'GC' : '$TURF'}</span>
             </div>
           </div>
         </div>
@@ -377,7 +426,7 @@ const BettingPanel: React.FC<BettingPanelProps> = ({ race, horses }) => {
       >
         {!selectedHorse ? 'Select a Horse' :
          betAmount <= 0 ? 'Enter Bet Amount' :
-         (player?.assets.turfBalance || 0) < betAmount ? 'Insufficient Balance' :
+         (isGuest ? (player?.assets.guestCoins || 0) : player?.assets.turfBalance || 0) < betAmount ? 'Insufficient Balance' :
          'Place Bet'}
       </motion.button>
 
@@ -417,11 +466,11 @@ const BettingPanel: React.FC<BettingPanelProps> = ({ race, horses }) => {
                 </div>
                 <div className="flex justify-between py-2 border-b border-gray-100">
                   <span className="text-gray-600">Amount:</span>
-                  <span className="font-medium">{betAmount.toLocaleString()} $TURF</span>
+                  <span className="font-medium">{betAmount.toLocaleString()} {isGuest ? 'GC' : '$TURF'}</span>
                 </div>
                 <div className="flex justify-between py-2">
                   <span className="font-semibold text-gray-800">Potential Payout:</span>
-                  <span className="font-bold text-green-600">{calculatePayout().toLocaleString()} $TURF</span>
+                  <span className="font-bold text-green-600">{calculatePayout().toLocaleString()} {isGuest ? 'GC' : '$TURF'}</span>
                 </div>
               </div>
 
