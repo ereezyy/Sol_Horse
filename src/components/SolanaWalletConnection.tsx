@@ -4,7 +4,11 @@ import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useGameStore } from '../store/gameStore';
 import playerService from '../services/playerService';
 
-const SolanaWalletConnection: React.FC = () => {
+interface SolanaWalletConnectionProps {
+  onConnect?: () => void;
+}
+
+const SolanaWalletConnection: React.FC<SolanaWalletConnectionProps> = ({ onConnect }) => {
   const { publicKey, connected } = useWallet();
   const { player, setPlayer } = useGameStore();
   const [loading, setLoading] = useState(false);
@@ -91,6 +95,10 @@ const SolanaWalletConnection: React.FC = () => {
         console.error('Error fetching/creating player:', error);
       } finally {
         setLoading(false);
+        // Call onConnect callback if provided to notify parent component
+        if (onConnect && connected) {
+          onConnect();
+        }
       }
     };
 
