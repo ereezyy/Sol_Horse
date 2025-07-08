@@ -95,7 +95,12 @@ const GlobalStyle = () => {
 };
 
 // Render the GlobalStyle along with RaceTrack
-const EnhancedRaceTrack: React.FC<RaceTrackProps> = (props) => {
+interface RaceTrackProps {
+  race: Race;
+  horses: HorseNFT[];
+}
+
+const RaceTrack: React.FC<RaceTrackProps> = (props) => {
   return (
     <>
       <GlobalStyle />
@@ -104,5 +109,5 @@ const EnhancedRaceTrack: React.FC<RaceTrackProps> = (props) => {
   );
 };
 
-export default EnhancedRaceTrack;
+export default RaceTrack;
 ```
