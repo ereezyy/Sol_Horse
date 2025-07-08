@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Trophy, Users, Gamepad2, TrendingUp, Crown, Zap } from 'lucide-react';
-import { Navigation } from './components/Navigation';
-import { HorseCard } from './components/HorseCard';
-import { RaceTrack } from './components/RaceTrack';
-import { Marketplace } from './components/Marketplace';
-import { TrainingCenter } from './components/TrainingCenter';
-import { BreedingCenter } from './components/BreedingCenter';
-import { PlayerProfile } from './components/PlayerProfile';
-import { SolanaWalletConnection } from './components/SolanaWalletConnection';
+import Navigation from './components/Navigation';
+import HorseCard from './components/HorseCard';
+import RaceTrack from './components/RaceTrack';
+import Marketplace from './components/Marketplace';
+import TrainingCenter from './components/TrainingCenter';
+import BreedingCenter from './components/BreedingCenter';
+import PlayerProfile from './components/PlayerProfile';
+import SolanaWalletConnection from './components/SolanaWalletConnection';
 import { useGameStore } from './store/gameStore';
 import type { HorseNFT, Player, Race } from './types';
 
