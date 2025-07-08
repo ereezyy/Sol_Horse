@@ -42,12 +42,12 @@ import { BettingEngine } from '../services/bettingEngine';
                         <div className="flex items-center gap-2 mt-1">
                           <div className="w-12 h-2 bg-gray-200 rounded-full overflow-hidden">
                             <div 
-                              className={`h-full rounded-full transition-all animate-pulse ${
+                              className={\`h-full rounded-full transition-all animate-pulse ${
                                 horse.energy > 60 ? 'bg-green-500' :
                                 horse.energy > 30 ? 'bg-yellow-500' :
                                 'bg-red-500'
                               }`}
-                              style={{ width: `${horse.energy}%` }}
+                              style={{ width: \`${horse.energy}%` }}
                             />
                           </div>
                           <span className="text-xs text-gray-600 w-8">{Math.round(horse.currentSpeed)}m/s</span>
