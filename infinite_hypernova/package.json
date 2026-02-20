@@ -1,0 +1,31 @@
+{
+  "name": "infinite-hypernova",
+  "version": "3.1.0",
+  "description": "Autonomous AI agent swarm on Solana",
+  "main": "don/syndicate_logic.js",
+  "scripts": {
+    "start": "node don/syndicate_logic.js",
+    "dashboard": "cd dashboard && npm run dev",
+    "cli": "node don/index.js"
+  },
+  "dependencies": {
+    "@solana/web3.js": "^1.87.0",
+    "axios": "^1.6.0",
+    "chalk": "^4.1.2",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "fs-extra": "^11.1.1",
+    "inquirer": "^8.2.5",
+    "jito-ts": "^2.0.0",
+    "node-cron": "^3.0.2",
+    "openai": "^4.14.0",
+    "puppeteer": "^21.4.1",
+    "socket.io": "^4.7.2",
+    "twilio": "^4.19.0",
+    "ws": "^8.14.2",
+    "@deepgram/sdk": "^3.1.0",
+    "bs58": "^5.0.0"
+  },
+  "author": "The Architect",
+  "license": "MIT"
+}
