@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion, MotionProps } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { 
   Star, 
   Zap, 
@@ -118,6 +118,7 @@ const HorseCard: React.FC<HorseCardProps> = ({
 
   return (
     <motion.div 
+      data-testid="horse-card"
       className={`bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden ${isSelected ? 'ring-4 ring-blue-500' : ''}`}
       whileHover={{ y: -4, shadow: "0 20px 40px rgba(0,0,0,0.1)" }}
       initial={{ opacity: 0, y: 20 }}
@@ -297,4 +298,4 @@ const HorseCard: React.FC<HorseCardProps> = ({
   );
 };
 
-export default HorseCard;
+export default React.memo(HorseCard);
