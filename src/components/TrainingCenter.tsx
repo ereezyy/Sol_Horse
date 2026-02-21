@@ -13,9 +13,7 @@ import {
   AlertCircle,
   RefreshCw,
   Trophy,
-  DollarSign,
   Play,
-  Pause,
   BarChart3,
   Award,
   Calendar,
@@ -25,7 +23,6 @@ import {
 import { useGameStore } from '../store/gameStore';
 import { HorseNFT } from '../types';
 import { TrainingEngine, TrainingProgram, TrainingSession, TrainingResult } from '../services/trainingEngine';
-import HorseCard from './HorseCard';
 
 const TrainingCenter: React.FC = () => {
   const { player, horses, updateHorse, updatePlayerBalance, addNotification } = useGameStore();
