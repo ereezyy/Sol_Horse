@@ -1,113 +1,41 @@
-Here's the fixed version with all missing closing brackets and proper formatting:
-
-```typescript
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion';
-import { 
-  Play, 
-  Pause, 
-  RotateCcw, 
-  Camera, 
-  Volume2, 
-  VolumeX,
-  Zap,
-  Wind,
-  CloudLightning,
-  CloudDrizzle,
-  CloudSnow,
-  Sun,
-  Cloud,
-  CloudRain,
-  Thermometer,
-  Trophy,
-  Clock,
-  Flag,
-  Hourglass,
-  Camera,
-  Maximize,
-  Award
-} from 'lucide-react';
-import { useGameStore } from '../store/gameStore';
+import React from 'react';
 import { Race, HorseNFT } from '../types';
-import { RaceEngine, RaceState, RaceResult } from '../services/raceEngine';
-import { BettingEngine } from '../services/bettingEngine';
 
-// ... [rest of the code remains the same until the results section]
-
-                    ) : raceState ? (
-                      <div>
-                        <p className="text-sm font-medium text-gray-800">
-                          {((horse.distanceCovered / race.distance) * 100).toFixed(1)}%
-                        </p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <div className="w-12 h-2 bg-gray-200 rounded-full overflow-hidden">
-                            <div 
-                              className={\`h-full rounded-full transition-all animate-pulse ${
-                                horse.energy > 60 ? 'bg-green-500' :
-                                horse.energy > 30 ? 'bg-yellow-500' :
-                                'bg-red-500'
-                              }`}
-                              style={{ width: \`${horse.energy}%` }}
-                            />
-                          </div>
-                          <span className="text-xs text-gray-600 w-8">{Math.round(horse.currentSpeed)}m/s</span>
-                        </div>
-                      </div>
-                    ) : (
-                      <div>
-                        <p className="text-sm text-gray-600">Ready</p>
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
-              );
-            })}
-        </div>
-      </div>
-
-      {/* Race Results */}
-      <AnimatePresence mode="wait">
-        {/* ... [rest of the results section remains the same] ... */}
-      </AnimatePresence>
-    </div>
-  );
-};
-
-// Add global animation for galloping effect to the CSS
-const GlobalStyle = () => {
-  useEffect(() => {
-    const style = document.createElement('style');
-    style.innerHTML = `
-      @keyframes gallop {
-        0% { transform: translateY(0); }
-        50% { transform: translateY(-3px); }
-        100% { transform: translateY(0); }
-      }
-    `;
-    document.head.appendChild(style);
-    
-    return () => {
-      document.head.removeChild(style);
-    };
-  }, []);
-  
-  return null;
-};
-
-// Render the GlobalStyle along with RaceTrack
 interface RaceTrackProps {
   race: Race;
   horses: HorseNFT[];
 }
 
-const RaceTrack: React.FC<RaceTrackProps> = (props) => {
+const RaceTrack: React.FC<RaceTrackProps> = ({ race, horses }) => {
   return (
-    <>
-      <GlobalStyle />
-      <RaceTrack {...props} />
-    </>
+    <div className="bg-white rounded-2xl shadow-xl p-6">
+      <div className="text-center mb-8">
+        <h2 className="text-2xl font-bold text-gray-800">{race.name}</h2>
+        <p className="text-gray-600">{race.location} • {race.distance}m</p>
+      </div>
+
+      <div className="relative h-64 bg-green-50 rounded-xl border border-green-200 overflow-hidden flex items-center justify-center">
+        <p className="text-gray-500">Race visualization temporarily unavailable.</p>
+      </div>
+
+      <div className="mt-6">
+        <h3 className="font-semibold text-gray-800 mb-3">Participants</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {horses.map(horse => (
+            <div key={horse.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center font-bold text-blue-600">
+                {horse.name.charAt(0)}
+              </div>
+              <div>
+                <p className="font-medium text-gray-800">{horse.name}</p>
+                <p className="text-xs text-gray-600">Gen {horse.genetics.generation}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 };
 
 export default RaceTrack;
-```

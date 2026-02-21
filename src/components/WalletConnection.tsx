@@ -49,6 +49,35 @@ const WalletConnection: React.FC = () => {
     type: 'none'
   });
 
+  // Handle wallet connection errors
+  useEffect(() => {
+    const handleWalletError = (error: any) => {
+      console.warn('Wallet extension error (this is normal in demo mode):', error);
+      setConnectionStatus({
+        error: 'Wallet extension not available - demo mode active',
+        loading: false,
+        type: 'wallet'
+      });
+
+      // Clear error after 5 seconds
+      setTimeout(() => setConnectionStatus(prev => ({ ...prev, error: null })), 5000);
+    };
+
+    // Listen for wallet errors
+    const handleError = (event: PromiseRejectionEvent) => {
+      if (event.reason?.message?.includes('wallet') || event.reason?.name?.includes('Phantom')) {
+        handleWalletError(event.reason);
+        event.preventDefault(); // Prevent console error spam
+      }
+    };
+
+    window.addEventListener('unhandledrejection', handleError);
+
+    return () => {
+      window.removeEventListener('unhandledrejection', handleError);
+    };
+  }, []);
+
   // Simulate wallet connection
   const connectWallet = useCallback(async (walletType: 'phantom' | 'solflare' | 'backpack') => {
     setConnectionStatus({
@@ -133,29 +162,43 @@ const WalletConnection: React.FC = () => {
           allowBreedingRequests: true
         }
       };
-  
-  // Handle wallet connection errors
-  useEffect(() => {
-    const handleWalletError = (error: any) => {
-      console.warn('Wallet extension error (this is normal in demo mode):', error);
+
+      // Calculate derived stats
+      mockPlayer.stats.winRate = mockPlayer.stats.totalRaces > 0 ?
+        mockPlayer.stats.wins / mockPlayer.stats.totalRaces : 0;
+      mockPlayer.stats.netProfit = mockPlayer.stats.totalEarnings - mockPlayer.stats.totalSpent;
+
+      setPlayer(mockPlayer);
+
+      // Set wallet stats
+      setWalletStats({
+        balance: mockPlayer.assets.solBalance,
+        transactions: Math.floor(Math.random() * 200),
+        staked: Math.random() * 5,
+        rewards: Math.random() * 2
+      });
+
+    } catch (error: any) {
+      console.error('Wallet connection failed:', error?.message || error);
       setConnectionStatus({
-        error: 'Wallet extension not available - demo mode active',
+        error: 'Wallet connection failed. Please try again or use Guest Mode.',
         loading: false,
         type: 'wallet'
       });
       
       // Clear error after 5 seconds
-      setTimeout(() => setConnectionStatus(prev => ({ ...prev, error: null })), 5000);
-    };
-    
-    // Listen for wallet errors
-    window.addEventListener('unhandledrejection', (event) => {
-      if (event.reason?.message?.includes('wallet') || event.reason?.name?.includes('Phantom')) {
-        handleWalletError(event.reason);
-        event.preventDefault(); // Prevent console error spam
-      }
-    });
-    
+      setTimeout(() => {
+        setConnectionStatus(prev => ({ ...prev, error: null }));
+      }, 5000);
+
+      return;
+    } finally {
+      setConnectionStatus(prev => ({
+        ...prev,
+        loading: false
+      }));
+    }
+  }, [setPlayer]);
 
   // Play as guest mode - generate a mock player without wallet
   const playAsGuest = async () => {
@@ -276,47 +319,6 @@ const WalletConnection: React.FC = () => {
       }));
     }
   };
-    return () => {
-      window.removeEventListener('unhandledrejection', handleWalletError);
-    };
-  }, []);
-      
-      // Calculate derived stats
-      mockPlayer.stats.winRate = mockPlayer.stats.totalRaces > 0 ? 
-        mockPlayer.stats.wins / mockPlayer.stats.totalRaces : 0;
-      mockPlayer.stats.netProfit = mockPlayer.stats.totalEarnings - mockPlayer.stats.totalSpent;
-      
-      setPlayer(mockPlayer);
-      
-      // Set wallet stats
-      setWalletStats({
-        balance: mockPlayer.assets.solBalance,
-        transactions: Math.floor(Math.random() * 200),
-        staked: Math.random() * 5,
-        rewards: Math.random() * 2
-      });
-      
-    } catch (error: any) {
-      console.error('Wallet connection failed:', error?.message || error);
-      setConnectionStatus({
-        error: 'Wallet connection failed. Please try again or use Guest Mode.',
-        loading: false,
-        type: 'wallet'
-      });
-      
-      // Clear error after 5 seconds
-      setTimeout(() => {
-        setConnectionStatus(prev => ({ ...prev, error: null }));
-      }, 5000);
-      
-      return;
-    } finally {
-      setConnectionStatus(prev => ({
-        ...prev,
-        loading: false
-      }));
-    }
-  }, [setPlayer]);
 
   const disconnectWallet = useCallback(() => {
     // Stop any ongoing connection attempts

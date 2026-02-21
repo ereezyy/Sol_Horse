@@ -128,15 +128,17 @@ const Marketplace: React.FC = () => {
       case 'price':
         comparison = a.price - b.price;
         break;
-      case 'rarity':
+      case 'rarity': {
         const rarityOrder = { Common: 1, Uncommon: 2, Rare: 3, Epic: 4, Legendary: 5 };
         comparison = rarityOrder[horseA.genetics.rarity] - rarityOrder[horseB.genetics.rarity];
         break;
-      case 'performance':
+      }
+      case 'performance': {
         const perfA = horseA.stats.races > 0 ? horseA.stats.wins / horseA.stats.races : 0;
         const perfB = horseB.stats.races > 0 ? horseB.stats.wins / horseB.stats.races : 0;
         comparison = perfA - perfB;
         break;
+      }
       case 'age':
         comparison = horseA.stats.age - horseB.stats.age;
         break;
