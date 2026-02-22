@@ -21,7 +21,6 @@ import {
 } from 'lucide-react';
 import { useGameStore } from '../store/gameStore';
 import { Tournament, TournamentEntry, TournamentMatch } from '../types';
-import HorseCard from './HorseCard';
 
 const TournamentCenter: React.FC = () => {
   const { player, horses, tournaments, addTournament, joinTournament, updatePlayerBalance, addNotification } = useGameStore();
