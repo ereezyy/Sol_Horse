@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, MotionProps } from 'framer-motion';
 import { 
   Star, 
   Zap, 
@@ -85,6 +85,7 @@ const HorseCard: React.FC<HorseCardProps> = ({
             onSelect(horse.id);
           }
         }}
+        data-testid="horse-card-compact"
       >
         <div className="flex items-center gap-3">
           {/* Horse Avatar */}
@@ -118,12 +119,12 @@ const HorseCard: React.FC<HorseCardProps> = ({
 
   return (
     <motion.div 
-      data-testid="horse-card"
       className={`bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden ${isSelected ? 'ring-4 ring-blue-500' : ''}`}
       whileHover={{ y: -4, shadow: "0 20px 40px rgba(0,0,0,0.1)" }}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
+      data-testid="horse-card"
     >
       {/* Header with Rarity */}
       <div className={`h-2 bg-gradient-to-r ${getRarityColor(horse.genetics.rarity)}`} />

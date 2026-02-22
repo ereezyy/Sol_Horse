@@ -11,6 +11,7 @@ import {
   Clock,
   Target,
   Award,
+  TrendingUp,
   ChevronRight,
   Play,
   Medal,
@@ -19,7 +20,7 @@ import {
   Flame
 } from 'lucide-react';
 import { useGameStore } from '../store/gameStore';
-import { Tournament, TournamentEntry } from '../types';
+import { Tournament, TournamentEntry, TournamentMatch } from '../types';
 
 const TournamentCenter: React.FC = () => {
   const { player, horses, tournaments, addTournament, joinTournament, updatePlayerBalance, addNotification } = useGameStore();

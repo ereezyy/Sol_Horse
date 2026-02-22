@@ -109,13 +109,14 @@ describe('HorseCard Component', () => {
       />
     );
 
-    expect(card).toHaveClass('ring-4');
+    const selectedCard = screen.getByTestId('horse-card');
+    expect(selectedCard).toHaveClass('ring-4');
   });
 
   it('calls onSelect when clicked', () => {
     const mockOnSelect = vi.fn();
     
-    render(
+    const { getByTestId } = render(
       <HorseCard 
         horse={mockHorse} 
         onSelect={mockOnSelect}
@@ -140,13 +141,13 @@ describe('HorseCard Component', () => {
       />
     );
 
-    expect(screen.getAllByText('Rare')[0]).toBeInTheDocument();
+    expect(screen.getByText('Rare')).toBeInTheDocument();
   });
 
   it('shows win rate and race statistics', () => {
     const mockOnSelect = vi.fn();
     
-    render(
+    const { getByText } = render(
       <HorseCard 
         horse={mockHorse} 
         onSelect={mockOnSelect}
@@ -159,8 +160,7 @@ describe('HorseCard Component', () => {
       return content.includes('53.3%');
     });
     expect(winRateElements.length).toBeGreaterThan(0);
-    expect(winRateElements[0]).toBeInTheDocument();
-
-    expect(screen.getAllByText(/8/)[0]).toBeInTheDocument(); // Wins count
+    expect(screen.getAllByText('8').length).toBeGreaterThan(0); // Wins count
+    // Note: Total races (15) might not be displayed directly in the component
   });
 });

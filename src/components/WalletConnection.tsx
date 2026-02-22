@@ -64,17 +64,17 @@ const WalletConnection: React.FC = () => {
     };
 
     // Listen for wallet errors
-    const handleError = (event: PromiseRejectionEvent) => {
+    const rejectionHandler = (event: PromiseRejectionEvent) => {
       if (event.reason?.message?.includes('wallet') || event.reason?.name?.includes('Phantom')) {
         handleWalletError(event.reason);
         event.preventDefault(); // Prevent console error spam
       }
     };
 
-    window.addEventListener('unhandledrejection', handleError);
+    window.addEventListener('unhandledrejection', rejectionHandler);
 
     return () => {
-      window.removeEventListener('unhandledrejection', handleError);
+      window.removeEventListener('unhandledrejection', rejectionHandler);
     };
   }, []);
 
@@ -234,7 +234,7 @@ const WalletConnection: React.FC = () => {
           facilities: [
             {
               id: '1',
-              type: 'Stable',
+              type: 'Stable' as const,
               level: 2,
               capacity: 8,
               upgradeCost: 10000,
@@ -262,7 +262,7 @@ const WalletConnection: React.FC = () => {
               name: 'Welcome!',
               description: 'Started your racing journey as a guest',
               icon: 'star',
-              rarity: 'Common',
+              rarity: 'Common' as const,
               unlockedAt: Date.now(),
               rewards: {
                 turfTokens: 1000,

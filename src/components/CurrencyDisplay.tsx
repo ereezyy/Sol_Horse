@@ -9,13 +9,11 @@ interface CurrencyDisplayProps {
 
 const CurrencyDisplay: React.FC<CurrencyDisplayProps> = ({ showHelp = false }) => {
   const { player } = useGameStore();
+  const [showTooltip, setShowTooltip] = React.useState(false);
   const isGuest = player?.walletAddress?.startsWith('guest_');
   
   // Early return if no player
   if (!player) return null;
-  
-  // Handle tooltip visibility
-  const [showTooltip, setShowTooltip] = React.useState(false);
 
   return (
     <div className="relative">

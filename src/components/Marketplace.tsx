@@ -2,20 +2,29 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Search, 
+  Filter,
   Grid, 
   List, 
+  Star,
   TrendingUp, 
   DollarSign, 
   Eye, 
   Heart, 
   ShoppingCart,
+  Clock,
+  Zap,
   Crown,
+  Award,
+  Users,
+  ArrowUpRight,
+  ArrowDownRight,
   RefreshCw,
   SortAsc,
   SortDesc
 } from 'lucide-react';
 import { useGameStore } from '../store/gameStore';
-import { MarketplaceListing } from '../types';
+import { HorseNFT, MarketplaceListing } from '../types';
+import CurrencyDisplay from './CurrencyDisplay';
 
 interface MarketplaceFilters {
   bloodline: string;
