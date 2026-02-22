@@ -297,4 +297,4 @@ const HorseCard: React.FC<HorseCardProps> = ({
   );
 };
 
-export default HorseCard;
+export default React.memo(HorseCard);
