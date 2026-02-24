@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Search, 
-  Filter, 
+  Filter,
   Grid, 
   List, 
-  Star, 
+  Star,
   TrendingUp, 
   DollarSign, 
-  Eye, 
-  Heart, 
+  Eye,
+  Heart,
   ShoppingCart,
   Clock,
   Zap,
