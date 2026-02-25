@@ -88,7 +88,7 @@ describe('HorseCard Component', () => {
   it('shows selected state correctly', () => {
     const mockOnSelect = vi.fn();
     
-    const { rerender } = render(
+    const { rerender, container } = render(
       <HorseCard 
         horse={mockHorse}
         onSelect={mockOnSelect} 
@@ -97,7 +97,7 @@ describe('HorseCard Component', () => {
     );
 
     // Test unselected state
-    const card = screen.getByText('View Details').closest('button');
+    const card = container.firstChild as HTMLElement;
     expect(card).not.toHaveClass('ring-4');
 
     // Test selected state
@@ -109,7 +109,11 @@ describe('HorseCard Component', () => {
       />
     );
 
-    expect(card).toHaveClass('ring-4');
+    // We need to re-query the card because rerender might replace the DOM node
+    // although react usually reuses it. But to be safe.
+    // Actually, container.firstChild should be updated.
+    const updatedCard = container.firstChild as HTMLElement;
+    expect(updatedCard).toHaveClass('ring-4');
   });
 
   it('calls onSelect when clicked', () => {
@@ -146,7 +150,7 @@ describe('HorseCard Component', () => {
   it('shows win rate and race statistics', () => {
     const mockOnSelect = vi.fn();
     
-    const { getByText } = render(
+    render(
       <HorseCard 
         horse={mockHorse} 
         onSelect={mockOnSelect}
@@ -155,11 +159,12 @@ describe('HorseCard Component', () => {
     );
 
     // Win rate is calculated as (8/15)*100 = 53.3, displayed as 53.3%
-    const winRateElement = screen.getByText((content, element) => {
+    const winRateElements = screen.getAllByText((content) => {
       return content.includes('53.3%');
     });
-    expect(winRateElement).toBeInTheDocument();
-    expect(screen.getByText(/8/)).toBeInTheDocument(); // Wins count
+    expect(winRateElements.length).toBeGreaterThan(0);
+    // Use exact string match '8' to avoid matching '85', '78', etc.
+    expect(screen.getByText('8')).toBeInTheDocument(); // Wins count
     // Note: Total races (15) might not be displayed directly in the component
   });
 });
