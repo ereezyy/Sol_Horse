@@ -13,7 +13,7 @@ const CurrencyDisplay: React.FC<CurrencyDisplayProps> = ({ showHelp = false }) =
   
   // Early return if no player
   if (!player) return null;
-  
+
   // Handle tooltip visibility
   const [showTooltip, setShowTooltip] = React.useState(false);
 

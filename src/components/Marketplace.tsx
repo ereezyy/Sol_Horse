@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Search, 
-  Filter, 
+  Filter,
   Grid, 
   List, 
-  Star, 
+  Star,
   TrendingUp, 
   DollarSign, 
-  Eye, 
-  Heart, 
+  Eye,
+  Heart,
   ShoppingCart,
   Clock,
   Zap,
@@ -132,7 +132,7 @@ const Marketplace: React.FC = () => {
   }).sort((a, b) => {
     const horseA = horses.find(h => h.id === a.itemId)!;
     const horseB = horses.find(h => h.id === b.itemId)!;
-    
+
     let comparison = 0;
     switch (filters.sortBy) {
       case 'price':
@@ -154,7 +154,7 @@ const Marketplace: React.FC = () => {
         comparison = a.listedAt - b.listedAt;
         break;
     }
-    
+
     return filters.sortOrder === 'desc' ? -comparison : comparison;
   });
 
