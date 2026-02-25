@@ -31,7 +31,7 @@ vi.mock('@solana/wallet-adapter-react', () => ({
 vi.mock('framer-motion', () => ({
   motion: {
     div: ({ children, ...props }) => React.createElement('div', props, children),
-    button: ({ children, ...props }) => React.createElement('button', { type: "button", ...props }, children),
+    button: ({ children, ...props }) => <button type="button" {...props}>{children}</button>,
     span: ({ children, ...props }) => React.createElement('span', props, children),
     h1: ({ children, ...props }) => React.createElement('h1', props, children),
     h2: ({ children, ...props }) => React.createElement('h2', props, children),

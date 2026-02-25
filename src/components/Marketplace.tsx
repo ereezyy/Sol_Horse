@@ -1,20 +1,30 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Search, 
+  Filter,
   Grid, 
   List, 
+  Star,
   TrendingUp, 
   DollarSign, 
+  Eye,
+  Heart,
   ShoppingCart,
+  Clock,
+  Zap,
   Crown,
+  Award,
+  Users,
+  ArrowUpRight,
+  ArrowDownRight,
   RefreshCw,
   SortAsc,
   SortDesc
 } from 'lucide-react';
 import { useGameStore } from '../store/gameStore';
-import { MarketplaceListing } from '../types';
-import MarketplaceItem from './MarketplaceItem';
+import { HorseNFT, MarketplaceListing } from '../types';
+import HorseCard from './HorseCard';
 import CurrencyDisplay from './CurrencyDisplay';
 
 interface MarketplaceFilters {
@@ -94,68 +104,59 @@ const Marketplace: React.FC = () => {
     });
   };
 
-  // Optimization: Memoize filtered listings to avoid recalculation on every render
-  const filteredListings = useMemo(() => {
-    return marketplaceListings.filter(listing => {
-      const horse = horses.find(h => h.id === listing.itemId);
-      if (!horse) return false;
+  const filteredListings = marketplaceListings.filter(listing => {
+    const horse = horses.find(h => h.id === listing.itemId);
+    if (!horse) return false;
 
-      // Search filter
-      if (searchTerm && !listing.title.toLowerCase().includes(searchTerm.toLowerCase())) {
-        return false;
-      }
+    // Search filter
+    if (searchTerm && !listing.title.toLowerCase().includes(searchTerm.toLowerCase())) {
+      return false;
+    }
 
-      // Bloodline filter
-      if (filters.bloodline !== 'all' && horse.genetics.bloodline !== filters.bloodline) {
-        return false;
-      }
+    // Bloodline filter
+    if (filters.bloodline !== 'all' && horse.genetics.bloodline !== filters.bloodline) {
+      return false;
+    }
 
-      // Rarity filter
-      if (filters.rarity !== 'all' && horse.genetics.rarity !== filters.rarity) {
-        return false;
-      }
+    // Rarity filter
+    if (filters.rarity !== 'all' && horse.genetics.rarity !== filters.rarity) {
+      return false;
+    }
 
-      // Price filters
-      if (listing.price < filters.minPrice || listing.price > filters.maxPrice) {
-        return false;
-      }
+    // Price filters
+    if (listing.price < filters.minPrice || listing.price > filters.maxPrice) {
+      return false;
+    }
 
-      return true;
-    }).sort((a, b) => {
-      const horseA = horses.find(h => h.id === a.itemId)!;
-      const horseB = horses.find(h => h.id === b.itemId)!;
+    return true;
+  }).sort((a, b) => {
+    const horseA = horses.find(h => h.id === a.itemId)!;
+    const horseB = horses.find(h => h.id === b.itemId)!;
 
-      let comparison = 0;
-      switch (filters.sortBy) {
-        case 'price':
-          comparison = a.price - b.price;
-          break;
-        case 'rarity':
-          const rarityOrder = { Common: 1, Uncommon: 2, Rare: 3, Epic: 4, Legendary: 5 };
-          comparison = rarityOrder[horseA.genetics.rarity] - rarityOrder[horseB.genetics.rarity];
-          break;
-        case 'performance':
-          const perfA = horseA.stats.races > 0 ? horseA.stats.wins / horseA.stats.races : 0;
-          const perfB = horseB.stats.races > 0 ? horseB.stats.wins / horseB.stats.races : 0;
-          comparison = perfA - perfB;
-          break;
-        case 'age':
-          comparison = horseA.stats.age - horseB.stats.age;
-          break;
-        case 'recent':
-          comparison = a.listedAt - b.listedAt;
-          break;
-      }
+    let comparison = 0;
+    switch (filters.sortBy) {
+      case 'price':
+        comparison = a.price - b.price;
+        break;
+      case 'rarity':
+        const rarityOrder = { Common: 1, Uncommon: 2, Rare: 3, Epic: 4, Legendary: 5 };
+        comparison = rarityOrder[horseA.genetics.rarity] - rarityOrder[horseB.genetics.rarity];
+        break;
+      case 'performance':
+        const perfA = horseA.stats.races > 0 ? horseA.stats.wins / horseA.stats.races : 0;
+        const perfB = horseB.stats.races > 0 ? horseB.stats.wins / horseB.stats.races : 0;
+        comparison = perfA - perfB;
+        break;
+      case 'age':
+        comparison = horseA.stats.age - horseB.stats.age;
+        break;
+      case 'recent':
+        comparison = a.listedAt - b.listedAt;
+        break;
+    }
 
-      return filters.sortOrder === 'desc' ? -comparison : comparison;
-    });
-  }, [marketplaceListings, horses, searchTerm, filters]);
-
-  // Optimization: Stable handler for buy click to prevent child re-renders
-  const handleBuyClick = useCallback((listing: MarketplaceListing) => {
-    setSelectedListing(listing);
-    setShowBuyModal(true);
-  }, []);
+    return filters.sortOrder === 'desc' ? -comparison : comparison;
+  });
 
   const handlePurchase = async (listing: MarketplaceListing) => {
     const hasSufficientFunds = isGuest 
@@ -240,6 +241,16 @@ const Marketplace: React.FC = () => {
     setShowBuyModal(false);
     setSelectedListing(null);
     setIsLoading(false);
+  };
+
+  const getRarityColor = (rarity: string) => {
+    switch (rarity) {
+      case 'Legendary': return 'from-yellow-400 to-orange-500';
+      case 'Epic': return 'from-purple-400 to-pink-500';
+      case 'Rare': return 'from-blue-400 to-indigo-500';
+      case 'Uncommon': return 'from-green-400 to-emerald-500';
+      default: return 'from-gray-400 to-gray-500';
+    }
   };
 
   return (
@@ -380,15 +391,116 @@ const Marketplace: React.FC = () => {
           const horse = horses.find(h => h.id === listing.itemId);
           if (!horse) return null;
 
-          return (
-            <MarketplaceItem
+          return viewMode === 'grid' ? (
+            <motion.div
               key={listing.id}
-              listing={listing}
-              horse={horse}
-              viewMode={viewMode}
-              onBuy={handleBuyClick}
-              isGuest={!!isGuest}
-            />
+              className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-all"
+              whileHover={{ y: -4 }}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+            >
+              {/* Horse Image Placeholder */}
+              <div className={`h-48 bg-gradient-to-br ${getRarityColor(horse.genetics.rarity)} relative`}>
+                <div className="absolute inset-0 bg-black bg-opacity-20" />
+                <div className="absolute top-4 left-4">
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold text-white bg-gradient-to-r ${getRarityColor(horse.genetics.rarity)}`}>
+                    {horse.genetics.rarity}
+                  </span>
+                </div>
+                <div className="absolute top-4 right-4 flex gap-2">
+                  <div className="bg-black bg-opacity-50 rounded-full p-2">
+                    <Eye className="w-4 h-4 text-white" />
+                    <span className="text-white text-xs ml-1">{listing.views}</span>
+                  </div>
+                  <div className="bg-black bg-opacity-50 rounded-full p-2">
+                    <Heart className="w-4 h-4 text-white" />
+                    <span className="text-white text-xs ml-1">{listing.watchers.length}</span>
+                  </div>
+                </div>
+                <div className="absolute bottom-4 left-4 text-white">
+                  <h3 className="text-xl font-bold">{horse.name}</h3>
+                  <p className="text-sm opacity-90">{horse.genetics.bloodline}</p>
+                </div>
+              </div>
+
+              <div className="p-6">
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div className="text-center">
+                    <p className="text-sm text-gray-600">Win Rate</p>
+                    <p className="text-lg font-bold text-green-600">
+                      {horse.stats.races > 0 ? ((horse.stats.wins / horse.stats.races) * 100).toFixed(1) : '0.0'}%
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm text-gray-600">Avg Stats</p>
+                    <p className="text-lg font-bold text-blue-600">
+                      {Math.round((horse.genetics.baseSpeed + horse.genetics.stamina + horse.genetics.agility + horse.genetics.intelligence + horse.genetics.temperament) / 5)}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <p className="text-2xl font-bold text-gray-800">{listing.price.toLocaleString()}</p>
+                    <p className="text-sm text-gray-600">{isGuest ? 'GC' : '$TURF'}</p>
+                  </div>
+                  {listing.negotiable && (
+                    <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">
+                      Negotiable
+                    </span>
+                  )}
+                </div>
+
+                <button
+                  onClick={() => {
+                    setSelectedListing(listing);
+                    setShowBuyModal(true);
+                  }}
+                  className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white py-3 px-4 rounded-xl font-semibold transition-all"
+                >
+                  Buy Now
+                </button>
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key={listing.id}
+              className="bg-white rounded-xl shadow-lg p-6 flex items-center gap-6 hover:shadow-xl transition-all"
+              whileHover={{ scale: 1.01 }}
+            >
+              <div className={`w-20 h-20 rounded-xl bg-gradient-to-br ${getRarityColor(horse.genetics.rarity)} flex items-center justify-center`}>
+                <span className="text-white font-bold text-2xl">{horse.name.charAt(0)}</span>
+              </div>
+
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-2">
+                  <h3 className="text-xl font-bold text-gray-800">{horse.name}</h3>
+                  <span className={`px-2 py-1 rounded-full text-xs font-bold text-white bg-gradient-to-r ${getRarityColor(horse.genetics.rarity)}`}>
+                    {horse.genetics.rarity}
+                  </span>
+                </div>
+                <p className="text-gray-600 mb-2">{horse.genetics.bloodline} • {horse.stats.wins}W/{horse.stats.races}R</p>
+                <div className="flex items-center gap-4 text-sm text-gray-600">
+                  <span>Listed {Math.floor((Date.now() - listing.listedAt) / 86400000)} days ago</span>
+                  <span>{listing.views} views</span>
+                  <span>{listing.watchers.length} watching</span>
+                </div>
+              </div>
+
+              <div className="text-right">
+                <p className="text-2xl font-bold text-gray-800">{listing.price.toLocaleString()}</p>
+                <p className="text-sm text-gray-600 mb-3">$TURF</p>
+                <button
+                  onClick={() => {
+                    setSelectedListing(listing);
+                    setShowBuyModal(true);
+                  }}
+                  className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-colors"
+                >
+                  Buy Now
+                </button>
+              </div>
+            </motion.div>
           );
         })}
       </div>
