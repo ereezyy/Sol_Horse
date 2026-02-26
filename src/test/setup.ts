@@ -30,14 +30,22 @@ vi.mock('@solana/wallet-adapter-react', () => ({
 // Mock framer-motion
 vi.mock('framer-motion', () => ({
   motion: {
-    div: ({ children, ...props }) => React.createElement('div', props, children),
-    button: ({ children, ...props }) => <button type="button" {...props}>{children}</button>,
-    span: ({ children, ...props }) => React.createElement('span', props, children),
-    h1: ({ children, ...props }) => React.createElement('h1', props, children),
-    h2: ({ children, ...props }) => React.createElement('h2', props, children),
-    h3: ({ children, ...props }) => React.createElement('h3', props, children),
-    p: ({ children, ...props }) => React.createElement('p', props, children),
-    img: ({ ...props }) => React.createElement('img', props),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    div: ({ children, ...props }: any) => React.createElement('div', props, children),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    button: ({ children, ...props }: any) => React.createElement('button', { ...props, type: "button" }, children),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    span: ({ children, ...props }: any) => React.createElement('span', props, children),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    h1: ({ children, ...props }: any) => React.createElement('h1', props, children),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    h2: ({ children, ...props }: any) => React.createElement('h2', props, children),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    h3: ({ children, ...props }: any) => React.createElement('h3', props, children),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    p: ({ children, ...props }: any) => React.createElement('p', props, children),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    img: ({ ...props }: any) => React.createElement('img', props),
   },
   AnimatePresence: ({ children }: { children: React.ReactNode }) => children,
   useAnimationControls: () => ({
@@ -47,6 +55,13 @@ vi.mock('framer-motion', () => ({
   }),
   useInView: () => true,
   useScroll: () => ({ scrollYProgress: { get: () => 0, onChange: vi.fn() } }),
+}));
+
+// Mock ResizeObserver
+global.ResizeObserver = vi.fn().mockImplementation(() => ({
+  observe: vi.fn(),
+  unobserve: vi.fn(),
+  disconnect: vi.fn(),
 }));
 
 // Mock zustand store
@@ -143,13 +158,6 @@ vi.mock('../store/gameStore', () => ({
     updateHorse: vi.fn(),
     setCurrentView: vi.fn(),
   }),
-}));
-
-// Global test utilities
-global.ResizeObserver = vi.fn().mockImplementation(() => ({
-  observe: vi.fn(),
-  unobserve: vi.fn(),
-  disconnect: vi.fn(),
 }));
 
 // Mock window.matchMedia
