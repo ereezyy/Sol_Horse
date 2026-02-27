@@ -28,27 +28,42 @@ const BreedingCenter: React.FC = () => {
   const [breedingInProgress, setBreedingInProgress] = useState(false);
   const [breedingResult, setBreedingResult] = useState<BreedingResult | null>(null);
   const [compatibility, setCompatibility] = useState<CompatibilityAnalysis | null>(null);
-  const [availableStuds, setAvailableStuds] = useState<HorseNFT[]>([]);
   const [breedingHistory, setBreedingHistory] = useState<any[]>([]);
   const [showPreview, setShowPreview] = useState(false);
   const [selectedTab, setSelectedTab] = useState<'breed' | 'studs' | 'history'>('breed');
 
-  const breedingEngine = new BreedingEngine();
-  const playerHorses = horses.filter(h => h.owner === player?.walletAddress);
-  const eligibleMares = playerHorses.filter(h => 
-    h.breeding.canBreed && 
-    h.stats.age >= 36 && 
-    h.stats.age <= 180 && // 3-15 years
-    h.genetics.rarity !== 'Legendary' // Legendary horses can't breed normally
-  );
+  const breedingEngine = React.useMemo(() => new BreedingEngine(), []);
 
-  const eligibleStallions = horses.filter(h => 
-    h.breeding.canBreed && 
-    h.breeding.isPublicStud &&
-    h.stats.age >= 36 &&
-    h.stats.age <= 240 && // stallions can breed longer
-    h.id !== selectedMare?.id
-  );
+  const playerHorses = React.useMemo(() =>
+    horses.filter(h => h.owner === player?.walletAddress),
+  [horses, player?.walletAddress]);
+
+  const eligibleMares = React.useMemo(() =>
+    playerHorses.filter(h =>
+      h.breeding.canBreed &&
+      h.stats.age >= 36 &&
+      h.stats.age <= 180 && // 3-15 years
+      h.genetics.rarity !== 'Legendary' // Legendary horses can't breed normally
+    ),
+  [playerHorses]);
+
+  const eligibleStallions = React.useMemo(() =>
+    horses.filter(h =>
+      h.breeding.canBreed &&
+      h.breeding.isPublicStud &&
+      h.stats.age >= 36 &&
+      h.stats.age <= 240 && // stallions can breed longer
+      h.id !== selectedMare?.id
+    ),
+  [horses, selectedMare?.id]);
+
+  const availableStuds = React.useMemo(() =>
+    horses.filter(h =>
+      h.breeding.isPublicStud &&
+      h.breeding.canBreed &&
+      h.owner !== player?.walletAddress
+    ),
+  [horses, player?.walletAddress]);
 
   // Calculate compatibility when both horses are selected
   useEffect(() => {
@@ -58,17 +73,7 @@ const BreedingCenter: React.FC = () => {
     } else {
       setCompatibility(null);
     }
-  }, [selectedMare, selectedStallion]);
-
-  // Load available studs
-  useEffect(() => {
-    const studs = horses.filter(h => 
-      h.breeding.isPublicStud && 
-      h.breeding.canBreed &&
-      h.owner !== player?.walletAddress
-    );
-    setAvailableStuds(studs);
-  }, [horses, player]);
+  }, [selectedMare, selectedStallion, breedingEngine]);
 
   const startBreeding = async () => {
     if (!selectedMare || !selectedStallion || !player) return;
