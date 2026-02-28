@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Zap, 
@@ -39,7 +39,13 @@ const TrainingCenter: React.FC = () => {
   const [currentTab, setCurrentTab] = useState<'train' | 'history' | 'stats'>('train');
   const [completionModal, setCompletionModal] = useState<{ show: boolean; result: TrainingResult | null }>({ show: false, result: null });
 
-  const playerHorses = horses.filter(h => h.owner === player?.walletAddress);
+  // ⚡ Bolt Optimization: Memoize the derived state for the player's horses
+  // Why: Avoids recomputing the filtered array of horses on every re-render (e.g., when the progress bar updates every second)
+  // Impact: Improves UI responsiveness and lowers CPU overhead during active training
+  const playerHorses = useMemo(
+    () => horses.filter(h => h.owner === player?.walletAddress),
+    [horses, player?.walletAddress]
+  );
   const facilityLevel = player?.assets.facilities.find(f => f.type === 'Training Ground')?.level || 1;
 
   // Update available programs when horse or facility changes
