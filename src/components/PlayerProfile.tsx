@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   User, 
@@ -79,7 +79,13 @@ const PlayerProfile: React.FC = () => {
     );
   }
 
-  const playerHorses = horses.filter(horse => horse.owner === player.walletAddress);
+  // ⚡ Bolt Optimization: Memoize the filtered array of player horses
+  // Why: Prevents an O(N) array filtering operation from running on every render
+  // Impact: Reduces CPU work during state updates or tab switches in the profile view
+  const playerHorses = useMemo(
+    () => horses.filter(horse => horse.owner === player.walletAddress),
+    [horses, player.walletAddress]
+  );
   const winRate = player.stats.totalRaces > 0 ? (player.stats.wins / player.stats.totalRaces * 100).toFixed(1) : '0.0';
   const profitMargin = player.stats.totalEarnings > 0 ? ((player.stats.netProfit / player.stats.totalEarnings) * 100).toFixed(1) : '0.0';
 
