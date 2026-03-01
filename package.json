@@ -61,5 +61,11 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "pnpm": {
+    "overrides": {
+      "esbuild": "^0.25.0",
+      "lodash": "^4.17.23"
+    }
   }
 }
