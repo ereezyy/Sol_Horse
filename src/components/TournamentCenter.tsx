@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Trophy, 
@@ -29,7 +29,9 @@ const TournamentCenter: React.FC = () => {
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [selectedHorse, setSelectedHorse] = useState<string | null>(null);
 
-  const playerHorses = horses.filter(h => h.owner === player?.walletAddress);
+  const playerHorses = useMemo(() => {
+    return horses.filter(h => h.owner === player?.walletAddress);
+  }, [horses, player?.walletAddress]);
 
   // Generate mock tournaments for demonstration
   useEffect(() => {

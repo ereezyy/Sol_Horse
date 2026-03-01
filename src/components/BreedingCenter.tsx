@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Heart, 
@@ -33,22 +33,34 @@ const BreedingCenter: React.FC = () => {
   const [showPreview, setShowPreview] = useState(false);
   const [selectedTab, setSelectedTab] = useState<'breed' | 'studs' | 'history'>('breed');
 
-  const breedingEngine = new BreedingEngine();
-  const playerHorses = horses.filter(h => h.owner === player?.walletAddress);
-  const eligibleMares = playerHorses.filter(h => 
-    h.breeding.canBreed && 
-    h.stats.age >= 36 && 
-    h.stats.age <= 180 && // 3-15 years
-    h.genetics.rarity !== 'Legendary' // Legendary horses can't breed normally
-  );
+  // Memoize the breeding engine to avoid instantiating it on every render
+  const breedingEngine = useMemo(() => new BreedingEngine(), []);
 
-  const eligibleStallions = horses.filter(h => 
-    h.breeding.canBreed && 
-    h.breeding.isPublicStud &&
-    h.stats.age >= 36 &&
-    h.stats.age <= 240 && // stallions can breed longer
-    h.id !== selectedMare?.id
-  );
+  // Memoize player horses to prevent O(N) filtering on every render
+  const playerHorses = useMemo(() => {
+    return horses.filter(h => h.owner === player?.walletAddress);
+  }, [horses, player?.walletAddress]);
+
+  // Memoize eligible mares
+  const eligibleMares = useMemo(() => {
+    return playerHorses.filter(h =>
+      h.breeding.canBreed &&
+      h.stats.age >= 36 &&
+      h.stats.age <= 180 && // 3-15 years
+      h.genetics.rarity !== 'Legendary' // Legendary horses can't breed normally
+    );
+  }, [playerHorses]);
+
+  // Memoize eligible stallions
+  const eligibleStallions = useMemo(() => {
+    return horses.filter(h =>
+      h.breeding.canBreed &&
+      h.breeding.isPublicStud &&
+      h.stats.age >= 36 &&
+      h.stats.age <= 240 && // stallions can breed longer
+      h.id !== selectedMare?.id
+    );
+  }, [horses, selectedMare?.id]);
 
   // Calculate compatibility when both horses are selected
   useEffect(() => {
