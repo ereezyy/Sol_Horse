@@ -1,0 +1,3 @@
+## 2024-05-18 - [Derived Array State Memoization]
+**Learning:** A common performance bottleneck in this codebase involves filtering the global `horses` array multiple times across components without memoization. E.g., computing `playerHorses` or `eligibleMares` from the global `horses` store inside `BreedingCenter` and other components causes expensive O(N) array operations on every render.
+**Action:** When working on list-based components derived from the global store, always evaluate the need to wrap `filter` and `map` operations in `React.useMemo` to prevent these operations from firing continuously due to unrelated state changes.
