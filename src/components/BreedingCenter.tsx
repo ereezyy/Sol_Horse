@@ -33,21 +33,35 @@ const BreedingCenter: React.FC = () => {
   const [showPreview, setShowPreview] = useState(false);
   const [selectedTab, setSelectedTab] = useState<'breed' | 'studs' | 'history'>('breed');
 
-  const breedingEngine = new BreedingEngine();
-  const playerHorses = horses.filter(h => h.owner === player?.walletAddress);
-  const eligibleMares = playerHorses.filter(h => 
-    h.breeding.canBreed && 
-    h.stats.age >= 36 && 
-    h.stats.age <= 180 && // 3-15 years
-    h.genetics.rarity !== 'Legendary' // Legendary horses can't breed normally
+  const breedingEngine = React.useMemo(() => new BreedingEngine(), []);
+
+  /* ⚡ Bolt: Memoized derived state to prevent O(N) array filters on every render */
+  const playerHorses = React.useMemo(
+    () => horses.filter(h => h.owner === player?.walletAddress),
+    [horses, player?.walletAddress]
   );
 
-  const eligibleStallions = horses.filter(h => 
-    h.breeding.canBreed && 
-    h.breeding.isPublicStud &&
-    h.stats.age >= 36 &&
-    h.stats.age <= 240 && // stallions can breed longer
-    h.id !== selectedMare?.id
+  /* ⚡ Bolt: Memoized derived state to prevent O(N) array filters on every render */
+  const eligibleMares = React.useMemo(
+    () => playerHorses.filter(h =>
+      h.breeding.canBreed &&
+      h.stats.age >= 36 &&
+      h.stats.age <= 180 && // 3-15 years
+      h.genetics.rarity !== 'Legendary' // Legendary horses can't breed normally
+    ),
+    [playerHorses]
+  );
+
+  /* ⚡ Bolt: Memoized derived state to prevent O(N) array filters on every render */
+  const eligibleStallions = React.useMemo(
+    () => horses.filter(h =>
+      h.breeding.canBreed &&
+      h.breeding.isPublicStud &&
+      h.stats.age >= 36 &&
+      h.stats.age <= 240 && // stallions can breed longer
+      h.id !== selectedMare?.id
+    ),
+    [horses, selectedMare?.id]
   );
 
   // Calculate compatibility when both horses are selected

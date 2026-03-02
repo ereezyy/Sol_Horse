@@ -316,7 +316,7 @@ const WalletConnection: React.FC = () => {
         loading: false
       }));
     }
-  }, [setPlayer]);
+  }, [setPlayer, addNotification]);
 
   const disconnectWallet = useCallback(() => {
     // Stop any ongoing connection attempts
@@ -351,30 +351,6 @@ const WalletConnection: React.FC = () => {
       setRefreshing(false);
     }, 1500);
   }, []);
-
-  const walletOptions = [
-    {
-      id: 'phantom',
-      name: 'Phantom',
-      icon: '👻',
-      description: 'Most popular Solana wallet',
-      installed: true
-    },
-    {
-      id: 'solflare',
-      name: 'Solflare',
-      icon: '☀️',
-      description: 'Native Solana wallet',
-      installed: true
-    },
-    {
-      id: 'backpack',
-      name: 'Backpack',
-      icon: '🎒',
-      description: 'Multi-chain wallet',
-      installed: false
-    }
-  ];
 
   return (
     <div className="max-w-4xl mx-auto p-6">
