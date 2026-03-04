@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Trophy, 
@@ -29,7 +29,10 @@ const TournamentCenter: React.FC = () => {
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [selectedHorse, setSelectedHorse] = useState<string | null>(null);
 
-  const playerHorses = horses.filter(h => h.owner === player?.walletAddress);
+  const playerHorses = useMemo(() =>
+    horses.filter(h => h.owner === player?.walletAddress),
+    [horses, player?.walletAddress]
+  );
 
   // Generate mock tournaments for demonstration
   useEffect(() => {
@@ -214,14 +217,22 @@ const TournamentCenter: React.FC = () => {
     }
   };
 
-  const filteredTournaments = tournaments.filter(t => {
-    switch (currentTab) {
-      case 'active': return t.status === 'Active';
-      case 'upcoming': return t.status === 'Registration';
-      case 'history': return t.status === 'Completed';
-      default: return true;
-    }
-  });
+  const filteredTournaments = useMemo(() =>
+    tournaments.filter(t => {
+      switch (currentTab) {
+        case 'active': return t.status === 'Active';
+        case 'upcoming': return t.status === 'Registration';
+        case 'history': return t.status === 'Completed';
+        default: return true;
+      }
+    }),
+    [tournaments, currentTab]
+  );
+
+  const tournamentWins = useMemo(() =>
+    player?.stats.achievements.filter(a => a.name.includes('Tournament')).length || 0,
+    [player?.stats.achievements]
+  );
 
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-6">
@@ -242,7 +253,7 @@ const TournamentCenter: React.FC = () => {
             <div className="text-center">
               <p className="text-sm text-gray-600">Tournament Wins</p>
               <p className="text-2xl font-bold text-purple-600">
-                {player?.stats.achievements.filter(a => a.name.includes('Tournament')).length || 0}
+                {tournamentWins}
               </p>
             </div>
             <div className="text-center">
