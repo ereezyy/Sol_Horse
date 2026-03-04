@@ -1,0 +1,3 @@
+## 2026-03-04 - Optimize derived state arrays in functional components
+**Learning:** Filtering the global `horses` store to find `playerHorses` was happening on every render across multiple components (`PlayerProfile`, `TrainingCenter`, `AIAssistant`, `AchievementSystem`). This is an O(N) operation that causes unnecessary performance degradation as the game scales.
+**Action:** Always wrap derived state arrays that filter large global stores (like `horses`) in `useMemo` with proper dependencies (e.g., `[horses, player?.walletAddress]`) to ensure they only recalculate when the underlying data changes.

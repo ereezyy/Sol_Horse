@@ -41,6 +41,9 @@ interface ChatMessage {
 
 const AIAssistant: React.FC = () => {
   const { player, horses, upcomingRaces } = useGameStore();
+  const playerHorses = React.useMemo(() =>
+    player ? horses.filter(h => h.owner === player.walletAddress) : [],
+  [horses, player?.walletAddress]);
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState<'insights' | 'chat' | 'predictions'>('insights');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -67,7 +70,6 @@ const AIAssistant: React.FC = () => {
     const newInsights: AIInsight[] = [];
 
     // Generate training insights
-    const playerHorses = horses.filter(h => h.owner === player.walletAddress);
     for (const horse of playerHorses.slice(0, 3)) {
       try {
         const trainingRec = await aiService.generateTrainingRecommendations(horse, player);

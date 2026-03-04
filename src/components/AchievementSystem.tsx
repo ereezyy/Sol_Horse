@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, Star, Medal, Crown, Target, Zap, Heart, Shield, Award, Lock, Unlock, Gift, Flame, CheckCircle, Cross as Progress, TrendingUp, Calendar, Users, DollarSign } from 'lucide-react';
 import { useGameStore } from '../store/gameStore';
@@ -38,13 +38,11 @@ const AchievementSystem: React.FC = () => {
   const [showUnlockedModal, setShowUnlockedModal] = useState<Achievement | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
-  useEffect(() => {
-    generateAchievements();
-  }, [player, horses]);
+  const playerHorses = useMemo(() =>
+    horses.filter(h => h.owner === player?.walletAddress),
+  [horses, player?.walletAddress]);
 
-  const generateAchievements = () => {
-    const playerHorses = horses.filter(h => h.owner === player?.walletAddress);
-    
+  const generateAchievements = useCallback(() => {
     const achievementList: Achievement[] = [
       // Racing Achievements
       {
@@ -280,7 +278,11 @@ const AchievementSystem: React.FC = () => {
     ];
 
     setAchievements(achievementList);
-  };
+  }, [player, playerHorses]);
+
+  useEffect(() => {
+    generateAchievements();
+  }, [generateAchievements]);
 
   const claimAchievement = (achievement: Achievement) => {
     if (!achievement.unlocked) return;
