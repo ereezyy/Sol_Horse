@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   User, 
@@ -79,9 +79,17 @@ const PlayerProfile: React.FC = () => {
     );
   }
 
-  const playerHorses = horses.filter(horse => horse.owner === player.walletAddress);
-  const winRate = player.stats.totalRaces > 0 ? (player.stats.wins / player.stats.totalRaces * 100).toFixed(1) : '0.0';
-  const profitMargin = player.stats.totalEarnings > 0 ? ((player.stats.netProfit / player.stats.totalEarnings) * 100).toFixed(1) : '0.0';
+  const playerHorses = useMemo(() =>
+    horses.filter(horse => horse.owner === player.walletAddress),
+  [horses, player.walletAddress]);
+
+  const winRate = useMemo(() =>
+    player.stats.totalRaces > 0 ? (player.stats.wins / player.stats.totalRaces * 100).toFixed(1) : '0.0',
+  [player.stats.totalRaces, player.stats.wins]);
+
+  const profitMargin = useMemo(() =>
+    player.stats.totalEarnings > 0 ? ((player.stats.netProfit / player.stats.totalEarnings) * 100).toFixed(1) : '0.0',
+  [player.stats.totalEarnings, player.stats.netProfit]);
 
   const copyWalletAddress = () => {
     navigator.clipboard.writeText(player.walletAddress);

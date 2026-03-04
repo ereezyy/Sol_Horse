@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Zap, 
@@ -39,8 +39,13 @@ const TrainingCenter: React.FC = () => {
   const [currentTab, setCurrentTab] = useState<'train' | 'history' | 'stats'>('train');
   const [completionModal, setCompletionModal] = useState<{ show: boolean; result: TrainingResult | null }>({ show: false, result: null });
 
-  const playerHorses = horses.filter(h => h.owner === player?.walletAddress);
-  const facilityLevel = player?.assets.facilities.find(f => f.type === 'Training Ground')?.level || 1;
+  const playerHorses = useMemo(() =>
+    horses.filter(h => h.owner === player?.walletAddress),
+  [horses, player?.walletAddress]);
+
+  const facilityLevel = useMemo(() =>
+    player?.assets.facilities.find(f => f.type === 'Training Ground')?.level || 1,
+  [player?.assets.facilities]);
 
   // Update available programs when horse or facility changes
   useEffect(() => {
