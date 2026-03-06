@@ -248,29 +248,7 @@ const DailyQuests: React.FC = () => {
     return Math.min(100, (quest.requirements.current / quest.requirements.target) * 100);
   };
 
-  // ⚡ Bolt Performance Optimization
-  // Memoize filtered quests to prevent O(N) recalculation on every render
-  const filteredQuests = React.useMemo(() =>
-    quests.filter(q => q.type === activeTab),
-  [quests, activeTab]);
-
-  // Memoize quest summary stats to prevent multiple O(N) filter and reduce operations on every render
-  const summaryStats = React.useMemo(() => {
-    const completed = quests.filter(q => q.completed).length;
-    const inProgress = quests.filter(q => !q.completed).length;
-
-    let totalTurfTokens = 0;
-    let totalExperience = 0;
-
-    quests.forEach(q => {
-      if (q.completed && !q.claimed) {
-        totalTurfTokens += q.rewards.turfTokens;
-        totalExperience += (q.rewards.experience || 0);
-      }
-    });
-
-    return { completed, inProgress, totalTurfTokens, totalExperience };
-  }, [quests]);
+  const filteredQuests = quests.filter(q => q.type === activeTab);
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
@@ -480,7 +458,7 @@ const DailyQuests: React.FC = () => {
           <div className="text-center p-4 bg-green-50 rounded-xl">
             <CheckCircle className="w-8 h-8 text-green-600 mx-auto mb-2" />
             <p className="text-2xl font-bold text-green-600">
-              {summaryStats.completed}
+              {quests.filter(q => q.completed).length}
             </p>
             <p className="text-sm text-gray-600">Completed</p>
           </div>
@@ -488,7 +466,7 @@ const DailyQuests: React.FC = () => {
           <div className="text-center p-4 bg-blue-50 rounded-xl">
             <RotateCcw className="w-8 h-8 text-blue-600 mx-auto mb-2" />
             <p className="text-2xl font-bold text-blue-600">
-              {summaryStats.inProgress}
+              {quests.filter(q => !q.completed).length}
             </p>
             <p className="text-sm text-gray-600">In Progress</p>
           </div>
@@ -496,7 +474,7 @@ const DailyQuests: React.FC = () => {
           <div className="text-center p-4 bg-yellow-50 rounded-xl">
             <DollarSign className="w-8 h-8 text-yellow-600 mx-auto mb-2" />
             <p className="text-2xl font-bold text-yellow-600">
-              {summaryStats.totalTurfTokens.toLocaleString()}
+              {quests.filter(q => q.completed && !q.claimed).reduce((sum, q) => sum + q.rewards.turfTokens, 0).toLocaleString()}
             </p>
             <p className="text-sm text-gray-600">Ready to Claim</p>
           </div>
@@ -504,7 +482,7 @@ const DailyQuests: React.FC = () => {
           <div className="text-center p-4 bg-purple-50 rounded-xl">
             <Star className="w-8 h-8 text-purple-600 mx-auto mb-2" />
             <p className="text-2xl font-bold text-purple-600">
-              {summaryStats.totalExperience.toLocaleString()}
+              {quests.filter(q => q.completed && !q.claimed).reduce((sum, q) => sum + (q.rewards.experience || 0), 0).toLocaleString()}
             </p>
             <p className="text-sm text-gray-600">XP Available</p>
           </div>

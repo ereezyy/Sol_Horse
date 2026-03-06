@@ -279,7 +279,7 @@ export class TrainingEngine {
     const finalSuccessRate = program.effects.successRate * ageModifier * fitnessModifier * experienceModifier;
     const success = Math.random() * 100 < finalSuccessRate;
 
-    const statChanges: Record<string, number> = {};
+    let statChanges: Record<string, number> = {};
     let fitnessChange = program.effects.fitnessChange;
     let experienceGained = program.effects.experienceGain;
     let message = '';

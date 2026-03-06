@@ -429,18 +429,6 @@ const SeasonalEvents: React.FC = () => {
     return `${hours}h`;
   };
 
-  // ⚡ Bolt Performance Optimization
-  // Memoize active events for the current season to prevent filtering on every render
-  const activeSeasonEvents = React.useMemo(() =>
-    events.filter(e => e.season === currentSeason && e.status === 'active'),
-  [events, currentSeason]);
-
-  // Memoize background image resolution to avoid Array.prototype.find on every render
-  const activeSeasonBackground = React.useMemo(() => {
-    const activeEvent = activeSeasonEvents[0]; // Reuse the already filtered array
-    return activeEvent?.backgroundImage || 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-  }, [activeSeasonEvents]);
-
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-6">
       {/* Header */}
@@ -469,7 +457,7 @@ const SeasonalEvents: React.FC = () => {
       </div>
 
       {/* Current Season Banner */}
-      <div className="relative rounded-2xl overflow-hidden h-32" style={{ background: activeSeasonBackground }}>
+      <div className="relative rounded-2xl overflow-hidden h-32" style={{ background: events.find(e => e.season === currentSeason && e.status === 'active')?.backgroundImage || 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
         <div className="absolute inset-0 bg-black bg-opacity-40" />
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center text-white">
@@ -478,7 +466,7 @@ const SeasonalEvents: React.FC = () => {
               <h2 className="text-2xl font-bold capitalize">{currentSeason} Season</h2>
             </div>
             <p className="text-lg opacity-90">
-              {activeSeasonEvents.length} active events
+              {events.filter(e => e.season === currentSeason && e.status === 'active').length} active events
             </p>
           </div>
         </div>
