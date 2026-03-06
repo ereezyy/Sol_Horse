@@ -271,10 +271,14 @@ const GuildSystem: React.FC = () => {
     }
   };
 
-  const filteredGuilds = availableGuilds.filter(guild =>
-    guild.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    guild.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // ⚡ Bolt Performance Optimization
+  // Memoize filtered guilds to prevent O(N) recalculation on every render
+  const filteredGuilds = React.useMemo(() =>
+    availableGuilds.filter(guild =>
+      guild.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      guild.description.toLowerCase().includes(searchTerm.toLowerCase())
+    ),
+  [availableGuilds, searchTerm]);
 
   return (
     <div className="space-y-6">
