@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   TrendingUp, 
@@ -57,6 +57,14 @@ const PredictiveAnalytics: React.FC = () => {
   const [performancePredictions, setPerformancePredictions] = useState<PerformancePrediction[]>([]);
   const [raceAnalysis, setRaceAnalysis] = useState<RaceAnalysis | null>(null);
   const [lastUpdate, setLastUpdate] = useState<number>(Date.now());
+
+  // Optimization: Pre-compute horse map for O(1) lookups during render
+  const horseMap = useMemo(() => {
+    return horses.reduce((acc, horse) => {
+      acc[horse.id] = horse;
+      return acc;
+    }, {} as Record<string, typeof horses[0]>);
+  }, [horses]);
 
   useEffect(() => {
     initializeModels();
@@ -297,7 +305,7 @@ const PredictiveAnalytics: React.FC = () => {
                     <h4 className="font-semibold text-gray-800 mb-4">Win Probabilities</h4>
                     <div className="space-y-3">
                       {(raceAnalysis.predictions || []).slice(0, 5).map((pred, index) => {
-                        const horse = horses.find(h => h.id === pred.horseId);
+                        const horse = horseMap[pred.horseId];
                         return (
                           <div key={pred.horseId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                             <div className="flex items-center gap-3">
@@ -380,7 +388,7 @@ const PredictiveAnalytics: React.FC = () => {
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {marketPredictions.map((pred) => {
-                const horse = horses.find(h => h.id === pred.horseId);
+                const horse = horseMap[pred.horseId];
                 const priceChange = pred.predictedPrice - pred.currentPrice;
                 const changePercent = (priceChange / pred.currentPrice) * 100;
                 
@@ -456,7 +464,7 @@ const PredictiveAnalytics: React.FC = () => {
             
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
               {performancePredictions.map((pred) => {
-                const horse = horses.find(h => h.id === pred.horseId);
+                const horse = horseMap[pred.horseId];
                 
                 return (
                   <div key={pred.horseId} className="border border-gray-200 rounded-xl p-4">
