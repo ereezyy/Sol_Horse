@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Heart, 
@@ -28,27 +28,38 @@ const BreedingCenter: React.FC = () => {
   const [breedingInProgress, setBreedingInProgress] = useState(false);
   const [breedingResult, setBreedingResult] = useState<BreedingResult | null>(null);
   const [compatibility, setCompatibility] = useState<CompatibilityAnalysis | null>(null);
-  const [availableStuds, setAvailableStuds] = useState<HorseNFT[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [breedingHistory, setBreedingHistory] = useState<any[]>([]);
   const [showPreview, setShowPreview] = useState(false);
   const [selectedTab, setSelectedTab] = useState<'breed' | 'studs' | 'history'>('breed');
 
-  const breedingEngine = new BreedingEngine();
-  const playerHorses = horses.filter(h => h.owner === player?.walletAddress);
-  const eligibleMares = playerHorses.filter(h => 
+  // Memoize BreedingEngine instance to prevent recreation on every render
+  const breedingEngine = useMemo(() => new BreedingEngine(), []);
+
+  // Memoize derived arrays to prevent O(N) recalculations on every render
+  const playerHorses = useMemo(() => horses.filter(h => h.owner === player?.walletAddress), [horses, player?.walletAddress]);
+
+  const eligibleMares = useMemo(() => playerHorses.filter(h =>
     h.breeding.canBreed && 
     h.stats.age >= 36 && 
     h.stats.age <= 180 && // 3-15 years
     h.genetics.rarity !== 'Legendary' // Legendary horses can't breed normally
-  );
+  ), [playerHorses]);
 
-  const eligibleStallions = horses.filter(h => 
+  const eligibleStallions = useMemo(() => horses.filter(h =>
     h.breeding.canBreed && 
     h.breeding.isPublicStud &&
     h.stats.age >= 36 &&
     h.stats.age <= 240 && // stallions can breed longer
     h.id !== selectedMare?.id
-  );
+  ), [horses, selectedMare?.id]);
+
+  // Replace local state & useEffect with useMemo for O(1) derived state updates
+  const availableStuds = useMemo(() => horses.filter(h =>
+    h.breeding.isPublicStud &&
+    h.breeding.canBreed &&
+    h.owner !== player?.walletAddress
+  ), [horses, player?.walletAddress]);
 
   // Calculate compatibility when both horses are selected
   useEffect(() => {
@@ -58,17 +69,7 @@ const BreedingCenter: React.FC = () => {
     } else {
       setCompatibility(null);
     }
-  }, [selectedMare, selectedStallion]);
-
-  // Load available studs
-  useEffect(() => {
-    const studs = horses.filter(h => 
-      h.breeding.isPublicStud && 
-      h.breeding.canBreed &&
-      h.owner !== player?.walletAddress
-    );
-    setAvailableStuds(studs);
-  }, [horses, player]);
+  }, [selectedMare, selectedStallion, breedingEngine]);
 
   const startBreeding = async () => {
     if (!selectedMare || !selectedStallion || !player) return;
