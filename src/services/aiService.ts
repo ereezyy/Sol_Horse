@@ -189,9 +189,15 @@ class AIService {
     
     switch (config.provider) {
       case 'openai':
-        return await this.callOpenAI(prompt, type, config.apiKey!);
+        if (!config.apiKey) {
+          throw new Error('OpenAI API key is missing');
+        }
+        return await this.callOpenAI(prompt, type, config.apiKey);
       case 'huggingface':
-        return await this.callHuggingFace(prompt, config.apiKey!, config.modelEndpoint!);
+        if (!config.apiKey) {
+          throw new Error('Hugging Face API key is missing');
+        }
+        return await this.callHuggingFace(prompt, config.apiKey, config.modelEndpoint!);
       case 'ollama':
         return await this.callOllama(prompt, config.localModel!);
       case 'local':
@@ -581,7 +587,7 @@ Recommend the best stallion match with genetic analysis and expected offspring q
 const aiService = new AIService(
   {
     provider: 'openai',
-    apiKey: import.meta.env.VITE_OPENAI_API_KEY || 'demo-key'
+    apiKey: import.meta.env.VITE_OPENAI_API_KEY
   },
   [
     {
