@@ -76,7 +76,6 @@ class AIService {
       // Test primary provider
       await this.testProvider(this.config);
       this.isInitialized = true;
-      console.log('AI Service initialized successfully');
     } catch (error) {
       console.warn('Primary AI provider failed, testing fallbacks');
       for (const fallback of this.fallbackProviders) {
@@ -84,7 +83,6 @@ class AIService {
           await this.testProvider(fallback);
           this.config = fallback;
           this.isInitialized = true;
-          console.log(`Fallback AI provider ${fallback.provider} initialized`);
           return;
         } catch (fallbackError) {
           console.warn(`Fallback ${fallback.provider} failed`);
