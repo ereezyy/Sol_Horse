@@ -133,7 +133,7 @@ export class RaceEngine {
       // Calculate acceleration based on horse stats and race progress
       try {
         const raceProgress = horse.distanceCovered / this.raceState.distance;
-        const energyFactor = this.calculateEnergyFactor(horse, raceProgress);
+        const energyFactor = this.calculateEnergyFactor(horse);
         const strategicSpeed = this.calculateStrategicSpeed(horse, raceProgress);
         
         // Update speed with realistic acceleration/deceleration
@@ -199,7 +199,7 @@ export class RaceEngine {
     }
   }
 
-  private calculateEnergyFactor(horse: RaceHorse): number {
+  public calculateEnergyFactor(horse: RaceHorse): number {
     // Energy affects performance exponentially
     if (horse.energy <= 0) return 0.25; // Even completely exhausted horses move a little
     
