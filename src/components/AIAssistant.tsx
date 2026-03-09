@@ -64,14 +64,13 @@ const AIAssistant: React.FC = () => {
   const generateInsights = async () => {
     if (!player || horses.length === 0) return;
 
-    const newInsights: AIInsight[] = [];
+    const playerHorses = horses.filter(h => h.owner === player.walletAddress).slice(0, 3);
 
-    // Generate training insights
-    const playerHorses = horses.filter(h => h.owner === player.walletAddress);
-    for (const horse of playerHorses.slice(0, 3)) {
+    // Create promises for all insights concurrently
+    const trainingPromises = playerHorses.map(async (horse): Promise<AIInsight> => {
       try {
         const trainingRec = await aiService.generateTrainingRecommendations(horse, player);
-        newInsights.push({
+        return {
           type: 'training',
           title: `${horse.name} Training Optimization`,
           content: trainingRec.longTermStrategy,
@@ -79,10 +78,9 @@ const AIAssistant: React.FC = () => {
           priority: 'high',
           actionable: true,
           timestamp: Date.now()
-        });
+        };
       } catch (error) {
-        // Fallback insight
-        newInsights.push({
+        return {
           type: 'training',
           title: `${horse.name} Needs Attention`,
           content: `Consider focusing on ${horse.genetics.baseSpeed < 70 ? 'speed' : 'stamina'} training to improve performance`,
@@ -90,48 +88,49 @@ const AIAssistant: React.FC = () => {
           priority: 'medium',
           actionable: true,
           timestamp: Date.now()
-        });
+        };
       }
-    }
+    });
 
-    // Generate market insights
-    try {
-      const marketData = {
-        avgPrice: horses.reduce((sum, h) => sum + (h.price || 0), 0) / horses.length,
-        totalVolume: horses.reduce((sum, h) => sum + (h.price || 0), 0)
-      };
-      const marketAnalysis = await aiService.generateMarketIntelligence(horses, marketData);
-      
-      newInsights.push({
-        type: 'market',
-        title: 'Market Opportunity Detected',
-        content: marketAnalysis.investmentOpportunities[0] || 'Look for undervalued horses with high potential',
-        confidence: 78,
-        priority: 'medium',
-        actionable: true,
-        timestamp: Date.now()
-      });
-    } catch (error) {
-      newInsights.push({
-        type: 'market',
-        title: 'Market Analysis',
-        content: 'Current market conditions favor strategic investments in young, high-potential horses',
-        confidence: 70,
-        priority: 'medium',
-        actionable: true,
-        timestamp: Date.now()
-      });
-    }
+    const marketPromise = (async (): Promise<AIInsight> => {
+      try {
+        const marketData = {
+          avgPrice: horses.reduce((sum, h) => sum + (h.price || 0), 0) / horses.length,
+          totalVolume: horses.reduce((sum, h) => sum + (h.price || 0), 0)
+        };
+        const marketAnalysis = await aiService.generateMarketIntelligence(horses, marketData);
 
-    // Generate racing insights
-    if (upcomingRaces.length > 0) {
+        return {
+          type: 'market',
+          title: 'Market Opportunity Detected',
+          content: marketAnalysis.investmentOpportunities[0] || 'Look for undervalued horses with high potential',
+          confidence: 78,
+          priority: 'medium',
+          actionable: true,
+          timestamp: Date.now()
+        };
+      } catch (error) {
+        return {
+          type: 'market',
+          title: 'Market Analysis',
+          content: 'Current market conditions favor strategic investments in young, high-potential horses',
+          confidence: 70,
+          priority: 'medium',
+          actionable: true,
+          timestamp: Date.now()
+        };
+      }
+    })();
+
+    const racingPromise = (async (): Promise<AIInsight | null> => {
+      if (upcomingRaces.length === 0) return null;
       try {
         const race = upcomingRaces[0];
         const raceHorses = horses.slice(0, 6);
         const analysis = await aiService.analyzeRace(race, raceHorses);
         setRaceAnalysis(analysis);
         
-        newInsights.push({
+        return {
           type: 'racing',
           title: `${race.name} Strategy`,
           content: analysis.keyFactors[0] || 'Weather and track conditions will be crucial factors',
@@ -139,9 +138,9 @@ const AIAssistant: React.FC = () => {
           priority: 'high',
           actionable: true,
           timestamp: Date.now()
-        });
+        };
       } catch (error) {
-        newInsights.push({
+        return {
           type: 'racing',
           title: 'Race Strategy',
           content: 'Focus on horses with strong stamina for upcoming longer distance races',
@@ -149,9 +148,22 @@ const AIAssistant: React.FC = () => {
           priority: 'medium',
           actionable: true,
           timestamp: Date.now()
-        });
+        };
       }
-    }
+    })();
+
+    // Resolve all promises concurrently
+    const [trainingInsights, marketInsight, racingInsight] = await Promise.all([
+      Promise.all(trainingPromises),
+      marketPromise,
+      racingPromise
+    ]);
+
+    const newInsights: AIInsight[] = [
+      ...trainingInsights,
+      marketInsight,
+      ...(racingInsight ? [racingInsight] : [])
+    ];
 
     setInsights(newInsights);
   };
