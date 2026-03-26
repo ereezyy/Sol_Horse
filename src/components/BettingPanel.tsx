@@ -31,23 +31,26 @@ const BettingPanel: React.FC<BettingPanelProps> = ({ race, horses }) => {
   const { player, placeBet, addNotification } = useGameStore();
   const isGuest = player?.walletAddress?.startsWith('guest_');
 
-  // Calculate dynamic odds based on horse performance
-  const calculateOdds = (horse: HorseNFT): number => {
-    const winRate = horse.stats.races > 0 ? horse.stats.wins / horse.stats.races : 0;
-    const baseOdds = winRate > 0.7 ? 2.1 : winRate > 0.5 ? 3.5 : winRate > 0.3 ? 5.2 : 8.5;
-    
-    // Add some randomness for market dynamics
-    const variance = 0.3 + Math.random() * 0.4;
-    return Number((baseOdds * variance).toFixed(1));
-  };
+  // Pre-calculate odds for all horses to ensure consistency and improve performance
+  const horseOdds = React.useMemo(() => {
+    return horses.reduce((acc, horse) => {
+      const winRate = horse.stats.races > 0 ? horse.stats.wins / horse.stats.races : 0;
+      const baseOdds = winRate > 0.7 ? 2.1 : winRate > 0.5 ? 3.5 : winRate > 0.3 ? 5.2 : 8.5;
+
+      // Create a deterministic variance based on horse and race IDs for consistent UI
+      const seedString = `${horse.id}-${race.id}`;
+      const hash = seedString.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+      const deterministicVariance = 0.3 + (hash % 41) / 100; // variance between 0.3 and 0.7
+
+      acc[horse.id] = Number((baseOdds * deterministicVariance).toFixed(1));
+      return acc;
+    }, {} as Record<string, number>);
+  }, [horses, race.id]);
 
   const calculatePayout = (): number => {
     if (!selectedHorse) return 0;
     
-    const horse = horses.find(h => h.id === selectedHorse);
-    if (!horse) return 0;
-    
-    const odds = calculateOdds(horse);
+    const odds = horseOdds[selectedHorse] || 0;
     
     switch (betType) {
       case 'Win':
@@ -92,7 +95,7 @@ const BettingPanel: React.FC<BettingPanelProps> = ({ race, horses }) => {
         horseId: selectedHorse!,
         type: betType,
         amount: betAmount,
-        odds: calculateOdds(horses.find(h => h.id === selectedHorse)!),
+        odds: horseOdds[selectedHorse!] || 0,
         potentialPayout: calculatePayout(),
         status: 'Active'
       };
@@ -223,7 +226,7 @@ const BettingPanel: React.FC<BettingPanelProps> = ({ race, horses }) => {
         <h3 className="text-sm font-semibold text-gray-700 mb-3">Select Horse(s)</h3>
         <div className="space-y-2 max-h-60 overflow-y-auto">
           {horses.map((horse) => {
-            const odds = calculateOdds(horse);
+            const odds = horseOdds[horse.id];
             const isSelected = selectedHorse === horse.id;
             
             return (
@@ -402,7 +405,7 @@ const BettingPanel: React.FC<BettingPanelProps> = ({ race, horses }) => {
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Odds:</span>
-              <span className="font-medium">{calculateOdds(horses.find(h => h.id === selectedHorse)!)}:1</span>
+              <span className="font-medium">{horseOdds[selectedHorse!]}:1</span>
             </div>
             <div className="border-t border-blue-200 pt-2 flex justify-between">
               <span className="font-semibold text-gray-800">Potential Payout:</span>
