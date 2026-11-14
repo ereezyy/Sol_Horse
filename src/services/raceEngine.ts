@@ -33,11 +33,33 @@ export interface RaceResult {
   winnings: number;
 }
 
-type WeatherCondition = 'Clear' | 'Cloudy' | 'Rainy' | 'Windy';
-type TrackCondition = 'Fast' | 'Good' | 'Soft' | 'Heavy';
+type WeatherCondition = 'Clear' | 'Cloudy' | 'Rainy' | 'Windy' | 'Stormy' | 'Snowy' | 'Drizzle';
+type TrackCondition = 'Fast' | 'Good' | 'Soft' | 'Heavy' | 'Frozen' | 'Muddy';
+
+export interface RaceEntrant {
+  id: string;
+  name: string;
+  genetics: {
+    baseSpeed: number;
+    stamina: number;
+    agility: number;
+    temperament: number;
+    intelligence: number;
+  };
+}
+
+export interface RaceSetup {
+  distance: number;
+  prizePool?: number;
+  conditions: {
+    weather: WeatherCondition;
+    trackCondition: TrackCondition;
+  };
+}
 
 export class RaceEngine {
   private raceState: RaceState;
+  private prizePool: number;
   private updateInterval: number = 33; // 33ms updates = 30fps for smoother animation
   
   // Enhanced race physics
@@ -54,8 +76,12 @@ export class RaceEngine {
     onFinish: (results: RaceResult[]) => void;
   };
 
-  constructor(horses: any[], raceConfig: any, callbacks: any) {
+  constructor(horses: RaceEntrant[], raceConfig: RaceSetup, callbacks: {
+    onUpdate: (state: RaceState) => void;
+    onFinish: (results: RaceResult[]) => void;
+  }) {
     this.callbacks = callbacks;
+    this.prizePool = Number(raceConfig?.prizePool) || 0;
     this.raceState = {
       horses: this.initializeHorses(horses, raceConfig.conditions.weather, raceConfig.conditions.trackCondition),
       distance: raceConfig.distance,
@@ -67,7 +93,7 @@ export class RaceEngine {
     };
   }
 
-  private initializeHorses(horses: any[], weather: WeatherCondition, trackCondition: TrackCondition): RaceHorse[] {
+  private initializeHorses(horses: RaceEntrant[], weather: WeatherCondition, trackCondition: TrackCondition): RaceHorse[] {
     return horses.map((horse, index) => {
       const weatherMod = this.getWeatherModifier(weather);
       const trackMod = this.getTrackModifier(trackCondition);
@@ -97,6 +123,7 @@ export class RaceEngine {
       case 'Windy': return 0.92;
       case 'Stormy': return 0.80;
       case 'Drizzle': return 0.90;
+      case 'Snowy': return 0.82;
       default: return 0.95;
     }
   }
@@ -107,6 +134,9 @@ export class RaceEngine {
       case 'Good': return 0.95;
       case 'Soft': return 0.88;
       case 'Heavy': return 0.78;
+      case 'Muddy': return 0.8;
+      case 'Frozen': return 0.84;
+      default: return 0.95;
     }
   }
 
@@ -297,19 +327,16 @@ export class RaceEngine {
   private finishRace(): void {
     const finishedHorses = this.raceState.horses
       .filter(h => h.finalTime !== undefined)
-      .sort((a, b) => a.finalTime! - b.finalTime!);
+      .sort((a, b) => (a.finalTime ?? 0) - (b.finalTime ?? 0));
+    const shares = [0.5, 0.25, 0.15, 0.1];
 
     this.raceState.results = finishedHorses.map((horse, index) => ({
       position: index + 1,
-      id: horse.id,
+      horseId: horse.id,
       name: horse.name,
-      position: 0,
-      distanceCovered: 0,
-      currentSpeed: 0,
-      energy: 100,
-    }
-    )
-    )
+      time: horse.finalTime ?? this.raceState.timeElapsed,
+      winnings: Math.round(this.prizePool * (shares[index] ?? 0)),
+    }));
     this.raceState.isFinished = true;
   }
 
