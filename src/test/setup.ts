@@ -30,21 +30,13 @@ vi.mock('@solana/wallet-adapter-react', () => ({
 // Mock framer-motion
 vi.mock('framer-motion', () => ({
   motion: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     div: ({ children, ...props }: any) => React.createElement('div', props, children),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     button: ({ children, ...props }: any) => React.createElement('button', { ...props, type: "button" }, children),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     span: ({ children, ...props }: any) => React.createElement('span', props, children),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     h1: ({ children, ...props }: any) => React.createElement('h1', props, children),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     h2: ({ children, ...props }: any) => React.createElement('h2', props, children),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     h3: ({ children, ...props }: any) => React.createElement('h3', props, children),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     p: ({ children, ...props }: any) => React.createElement('p', props, children),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     img: ({ ...props }: any) => React.createElement('img', props),
   },
   AnimatePresence: ({ children }: { children: React.ReactNode }) => children,

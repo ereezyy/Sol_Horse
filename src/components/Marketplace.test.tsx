@@ -12,15 +12,13 @@ vi.mock('../store/gameStore', () => ({
 // Mock framer-motion to avoid animation issues in tests
 vi.mock('framer-motion', () => ({
   motion: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    div: ({ children, className, onClick }: any) => (
+    div: ({ children, className, onClick }: { children: React.ReactNode; className?: string; onClick?: () => void }) => (
       <div className={className} onClick={onClick}>
         {children}
       </div>
     ),
   },
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  AnimatePresence: ({ children }: any) => <>{children}</>,
+  AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
 describe('Marketplace Component', () => {
