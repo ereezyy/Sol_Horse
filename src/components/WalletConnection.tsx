@@ -26,7 +26,6 @@ interface WalletStats {
 }
 
 const WalletConnection: React.FC = () => {
-  const [isConnecting, setIsConnecting] = useState(false);
   const [connectedWallet, setConnectedWallet] = useState<string | null>(null);
   const [walletStats, setWalletStats] = useState<WalletStats>({
     balance: 0,
@@ -49,113 +48,31 @@ const WalletConnection: React.FC = () => {
     type: 'none'
   });
 
-  // Simulate wallet connection
-  const connectWallet = useCallback(async (walletType: 'phantom' | 'solflare' | 'backpack') => {
-    setConnectionStatus({
-      error: null,
-      loading: true,
-      type: 'wallet'
-    });
-    
-    try {
-      // Simulate connection delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Mock wallet address generation
-      const mockAddress = `${walletType.charAt(0).toUpperCase()}${Math.random().toString(36).substr(2, 9)}...${Math.random().toString(36).substr(2, 4)}`;
-      setConnectedWallet(mockAddress);
-      
-      // Create mock player data
-      const mockPlayer = {
-        id: Date.now().toString(),
-        walletAddress: mockAddress,
-        username: `Player_${Math.random().toString(36).substr(2, 6)}`,
-        profile: {
-          avatar: '',
-          bio: 'New trainer ready to build a legendary stable!',
-          joinDate: Date.now(),
-          country: 'Global',
-          stableName: `${walletType.charAt(0).toUpperCase() + walletType.slice(1)} Stables`
-        },
-        assets: {
-          turfBalance: 25000 + Math.floor(Math.random() * 75000), // 25k-100k starting balance
-          solBalance: 5.0 + Math.random() * 20,                   // 5-25 SOL
-          stakedSol: Math.random() * 50,                          // 0-50 SOL staked
-          pendingRewards: Math.random() * 5,                      // 0-5 SOL rewards
-          horses: [],
-          facilities: [
-            {
-              id: '1',
-              type: 'Stable' as const,
-              level: 2,                    // Start at level 2
-              capacity: 8,                 // More capacity
-              upgradeCost: 10000,
-              benefits: {
-                trainingEfficiency: 1.1,   // Better starting efficiency
-                recoverySpeed: 1.05,       // Faster recovery
-                breedingSuccessRate: 1.0
-              }
-            }
-          ]
-        },
-        stats: {
-          totalRaces: Math.floor(Math.random() * 50),
-          wins: Math.floor(Math.random() * 20),
-          winRate: 0,
-          totalEarnings: Math.floor(Math.random() * 100000),
-          totalSpent: Math.floor(Math.random() * 80000),
-          netProfit: 0,
-          reputation: Math.floor(Math.random() * 500),
-          achievements: [
-            {
-              id: '1',
-              name: 'First Steps',
-              description: 'Connected your first wallet',
-              icon: 'wallet',
-              rarity: 'Common' as const,
-              unlockedAt: Date.now(),
-              rewards: {
-                turfTokens: 1000,
-                title: 'Newcomer'
-              }
-            }
-          ]
-        },
-        social: {
-          guildId: undefined,
-          friends: [],
-          followers: Math.floor(Math.random() * 100),
-          following: Math.floor(Math.random() * 50)
-        },
-        preferences: {
-          notifications: true,
-          publicProfile: true,
-          allowBreedingRequests: true
-        }
-      };
-  
   // Handle wallet connection errors
   useEffect(() => {
-    const handleWalletError = (error: any) => {
+    const handleWalletError = (error: unknown) => {
       console.warn('Wallet extension error (this is normal in demo mode):', error);
       setConnectionStatus({
         error: 'Wallet extension not available - demo mode active',
         loading: false,
         type: 'wallet'
       });
-      
-      // Clear error after 5 seconds
       setTimeout(() => setConnectionStatus(prev => ({ ...prev, error: null })), 5000);
     };
-    
-    // Listen for wallet errors
-    window.addEventListener('unhandledrejection', (event) => {
+
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
       if (event.reason?.message?.includes('wallet') || event.reason?.name?.includes('Phantom')) {
         handleWalletError(event.reason);
-        event.preventDefault(); // Prevent console error spam
+        event.preventDefault();
       }
-    });
-    
+    };
+
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+
+    return () => {
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+    };
+  }, []);
 
   // Play as guest mode - generate a mock player without wallet
   const playAsGuest = async () => {
@@ -164,18 +81,15 @@ const WalletConnection: React.FC = () => {
       loading: true,
       type: 'guest'
     });
-    
+
     try {
-      // Simulate connection delay for a realistic experience
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Generate a guest player with random ID
+
       const guestId = `Guest_${Math.random().toString(36).substr(2, 6)}`;
-      
-      // Create mock player data
+
       const mockPlayer = {
         id: Date.now().toString(),
-        walletAddress: `guest_${Date.now()}`, // Special format to identify as guest
+        walletAddress: `guest_${Date.now()}`,
         username: guestId,
         profile: {
           avatar: '',
@@ -185,8 +99,10 @@ const WalletConnection: React.FC = () => {
           stableName: `${guestId}'s Stable`
         },
         assets: {
-          turfBalance: 25000 + Math.floor(Math.random() * 5000),
-          solBalance: 5.0,
+          turfBalance: 0,
+          guestCoins: 200000,
+          racingCredits: 25000,
+          solBalance: 0,
           horses: [],
           facilities: [
             {
@@ -242,20 +158,15 @@ const WalletConnection: React.FC = () => {
         }
       };
 
-      // Set wallet stats for UI display
       setWalletStats({
         balance: mockPlayer.assets.solBalance,
         transactions: 0,
         staked: 0,
         rewards: 0
       });
-      
-      // Note: we're not setting connectedWallet for guest mode
-      
-      // Set the player in the game store
+
       setPlayer(mockPlayer);
-      
-      // Add a notification that data won't be saved
+
       setTimeout(() => {
         addNotification({
           id: Date.now().toString(),
@@ -266,7 +177,7 @@ const WalletConnection: React.FC = () => {
           read: false
         });
       }, 1500);
-      
+
     } catch (error) {
       console.error('Error creating guest player:', error);
     } finally {
@@ -276,47 +187,6 @@ const WalletConnection: React.FC = () => {
       }));
     }
   };
-    return () => {
-      window.removeEventListener('unhandledrejection', handleWalletError);
-    };
-  }, []);
-      
-      // Calculate derived stats
-      mockPlayer.stats.winRate = mockPlayer.stats.totalRaces > 0 ? 
-        mockPlayer.stats.wins / mockPlayer.stats.totalRaces : 0;
-      mockPlayer.stats.netProfit = mockPlayer.stats.totalEarnings - mockPlayer.stats.totalSpent;
-      
-      setPlayer(mockPlayer);
-      
-      // Set wallet stats
-      setWalletStats({
-        balance: mockPlayer.assets.solBalance,
-        transactions: Math.floor(Math.random() * 200),
-        staked: Math.random() * 5,
-        rewards: Math.random() * 2
-      });
-      
-    } catch (error: any) {
-      console.error('Wallet connection failed:', error?.message || error);
-      setConnectionStatus({
-        error: 'Wallet connection failed. Please try again or use Guest Mode.',
-        loading: false,
-        type: 'wallet'
-      });
-      
-      // Clear error after 5 seconds
-      setTimeout(() => {
-        setConnectionStatus(prev => ({ ...prev, error: null }));
-      }, 5000);
-      
-      return;
-    } finally {
-      setConnectionStatus(prev => ({
-        ...prev,
-        loading: false
-      }));
-    }
-  }, [setPlayer]);
 
   const disconnectWallet = useCallback(() => {
     // Stop any ongoing connection attempts
@@ -351,30 +221,6 @@ const WalletConnection: React.FC = () => {
       setRefreshing(false);
     }, 1500);
   }, []);
-
-  const walletOptions = [
-    {
-      id: 'phantom',
-      name: 'Phantom',
-      icon: '👻',
-      description: 'Most popular Solana wallet',
-      installed: true
-    },
-    {
-      id: 'solflare',
-      name: 'Solflare',
-      icon: '☀️',
-      description: 'Native Solana wallet',
-      installed: true
-    },
-    {
-      id: 'backpack',
-      name: 'Backpack',
-      icon: '🎒',
-      description: 'Multi-chain wallet',
-      installed: false
-    }
-  ];
 
   return (
     <div className="max-w-4xl mx-auto p-6">

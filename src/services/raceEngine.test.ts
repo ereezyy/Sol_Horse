@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { RaceEngine, RaceHorse } from './raceEngine';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { RaceEngine, RaceHorse, RaceResult, RaceSetup } from './raceEngine';
 
 describe('RaceEngine', () => {
   const mockHorses = [
@@ -9,7 +9,7 @@ describe('RaceEngine', () => {
       genetics: { baseSpeed: 50, stamina: 50, agility: 50, temperament: 50, intelligence: 50 }
     }
   ];
-  const mockConfig = {
+  const mockConfig: RaceSetup = {
     distance: 1000,
     conditions: { weather: 'Clear', trackCondition: 'Fast' }
   };
@@ -53,4 +53,31 @@ describe('RaceEngine', () => {
       expect(engine.calculateEnergyFactor(horse)).toBeCloseTo(expected, 5);
     });
   });
+
+  it('pays the winner half the prize pool when the race finishes', () => {
+    vi.useFakeTimers();
+    const results: RaceResult[] = [];
+    const finishing = new RaceEngine(
+      [{
+        id: 'a',
+        name: 'Sprinter',
+        genetics: { baseSpeed: 90, stamina: 90, agility: 50, temperament: 50, intelligence: 50 }
+      }],
+      { distance: 30, conditions: { weather: 'Clear', trackCondition: 'Fast' }, prizePool: 1000 },
+      { onUpdate: () => {}, onFinish: (finished) => results.push(...finished) }
+    );
+
+    finishing.startRace();
+    vi.advanceTimersByTime(20000);
+
+    expect(results).toHaveLength(1);
+    expect(results[0].horseId).toBe('a');
+    expect(results[0].position).toBe(1);
+    expect(results[0].time).toBeGreaterThan(0);
+    expect(results[0].winnings).toBe(500);
+  });
+});
+
+afterEach(() => {
+  vi.useRealTimers();
 });

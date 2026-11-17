@@ -1,15 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  DollarSign, 
-  TrendingUp, 
-  Target, 
-  Zap, 
-  AlertCircle,
+import {
+  DollarSign,
   CheckCircle,
   Calculator,
-  Trophy,
-  Clock,
   Star
 } from 'lucide-react';
 import { useGameStore } from '../store/gameStore';
@@ -90,6 +84,8 @@ const BettingPanel: React.FC<BettingPanelProps> = ({ race, horses }) => {
         playerId: player!.id,
         raceId: race.id,
         horseId: selectedHorse!,
+        secondHorseId: (betType === 'Exacta' || betType === 'Trifecta') ? secondPick ?? undefined : undefined,
+        thirdHorseId: betType === 'Trifecta' ? thirdPick ?? undefined : undefined,
         type: betType,
         amount: betAmount,
         odds: calculateOdds(horses.find(h => h.id === selectedHorse)!),
@@ -99,7 +95,7 @@ const BettingPanel: React.FC<BettingPanelProps> = ({ race, horses }) => {
       
       // For guest mode, we'll handle betting separately
       if (isGuest) {
-        // Update guest player's coins directly
+        // Update guest player's coins directly and record active bet
         const updatedPlayer = {
           ...player,
           assets: {
@@ -107,9 +103,11 @@ const BettingPanel: React.FC<BettingPanelProps> = ({ race, horses }) => {
             guestCoins: (player.assets.guestCoins || 0) - betAmount
           }
         };
-        
-        // Update the player state
-        useGameStore.setState({ player: updatedPlayer });
+
+        useGameStore.setState((state) => ({
+          player: updatedPlayer,
+          activeBets: [...state.activeBets, bet]
+        }));
         
         // We'll still add the notification but handle it differently
         addNotification({
