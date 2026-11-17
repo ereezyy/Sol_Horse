@@ -61,6 +61,7 @@ export class RaceEngine {
   private raceState: RaceState;
   private prizePool: number;
   private updateInterval: number = 33; // 33ms updates = 30fps for smoother animation
+  private raceLoopId: ReturnType<typeof setInterval> | null = null;
   
   // Enhanced race physics
   private readonly racePhysics = {
@@ -141,16 +142,23 @@ export class RaceEngine {
   }
 
   public startRace(): void {
-    const raceLoop = setInterval(() => {
+    this.raceLoopId = setInterval(() => {
       this.updateRace();
-      
+
       if (this.raceState.isFinished) {
-        clearInterval(raceLoop);
+        this.stopRace();
         this.callbacks.onFinish(this.raceState.results);
       } else {
         this.callbacks.onUpdate(this.raceState);
       }
     }, this.updateInterval);
+  }
+
+  public stopRace(): void {
+    if (this.raceLoopId !== null) {
+      clearInterval(this.raceLoopId);
+      this.raceLoopId = null;
+    }
   }
 
   private updateRace(): void {

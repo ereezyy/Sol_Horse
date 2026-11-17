@@ -13,10 +13,18 @@ export interface BetResult {
   payout: number;
 }
 
+interface PlacedBet {
+  id: string;
+  horseId: string;
+  type: 'Win' | 'Place' | 'Show';
+  amount: number;
+}
+
 export class BettingEngine {
   private horseBets: Map<string, { win: number; place: number; show: number }> = new Map();
   private totalPool: number = 0;
   private houseEdge: number = 0.15; // 15% house edge
+  private placedBets: PlacedBet[] = [];
 
   constructor() {
     this.resetBets();
@@ -83,23 +91,36 @@ export class BettingEngine {
     bets[betType] += amount;
     this.totalPool += amount;
 
+    const typeMap: Record<'win' | 'place' | 'show', 'Win' | 'Place' | 'Show'> = {
+      win: 'Win', place: 'Place', show: 'Show'
+    };
+    this.placedBets.push({
+      id: `bet-${Date.now()}-${Math.random()}`,
+      horseId,
+      type: typeMap[betType],
+      amount
+    });
+
     return true;
   }
 
   public calculatePayouts(raceResults: any[]): BetResult[] {
+    // Only settle actual placed bets — never generate mock bets
+    if (this.placedBets.length === 0) return [];
+
     const results: BetResult[] = [];
     const winner = raceResults[0];
     const second = raceResults[1];
     const third = raceResults[2];
+    const odds = this.calculateOdds(raceResults.map(r => ({
+      id: r.horseId,
+      genetics: r.genetics || { baseSpeed: 50, stamina: 50, agility: 50, intelligence: 50 },
+      stats: r.stats || { races: 0, wins: 0 }
+    })));
 
-    // Process all bets (in a real app, this would come from a database)
-    // For demo, we'll simulate some bets
-    const mockBets = this.generateMockBets(raceResults);
-
-    mockBets.forEach(bet => {
-      const odds = this.calculateOdds(raceResults.map(r => ({ id: r.horseId, genetics: {}, stats: {} })));
+    this.placedBets.forEach(bet => {
       const horseOdds = odds.find(o => o.horseId === bet.horseId);
-      
+
       if (!horseOdds) {
         results.push({ bet, won: false, payout: 0 });
         return;
@@ -110,19 +131,19 @@ export class BettingEngine {
 
       switch (bet.type) {
         case 'Win':
-          if (bet.horseId === winner.horseId) {
+          if (bet.horseId === winner?.horseId) {
             won = true;
             payout = bet.amount * horseOdds.winOdds;
           }
           break;
         case 'Place':
-          if (bet.horseId === winner.horseId || bet.horseId === second?.horseId) {
+          if (bet.horseId === winner?.horseId || bet.horseId === second?.horseId) {
             won = true;
             payout = bet.amount * horseOdds.placeOdds;
           }
           break;
         case 'Show':
-          if (bet.horseId === winner.horseId || bet.horseId === second?.horseId || bet.horseId === third?.horseId) {
+          if (bet.horseId === winner?.horseId || bet.horseId === second?.horseId || bet.horseId === third?.horseId) {
             won = true;
             payout = bet.amount * horseOdds.showOdds;
           }
@@ -135,18 +156,10 @@ export class BettingEngine {
     return results;
   }
 
-  private generateMockBets(raceResults: any[]): any[] {
-    // Generate some realistic betting patterns for demo
-    return [
-      { id: '1', horseId: raceResults[0]?.horseId, type: 'Win', amount: 500 },
-      { id: '2', horseId: raceResults[1]?.horseId, type: 'Place', amount: 300 },
-      { id: '3', horseId: raceResults[2]?.horseId, type: 'Show', amount: 200 },
-    ];
-  }
-
   public resetBets(): void {
     this.horseBets.clear();
     this.totalPool = 0;
+    this.placedBets = [];
   }
 
   public getTotalPool(): number {

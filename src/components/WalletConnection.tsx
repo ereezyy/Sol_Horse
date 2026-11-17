@@ -182,15 +182,17 @@ const WalletConnection: React.FC = () => {
       setTimeout(() => setConnectionStatus(prev => ({ ...prev, error: null })), 5000);
     };
 
-    window.addEventListener('unhandledrejection', (event) => {
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
       if (event.reason?.message?.includes('wallet') || event.reason?.name?.includes('Phantom')) {
         handleWalletError(event.reason);
         event.preventDefault();
       }
-    });
+    };
+
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
 
     return () => {
-      window.removeEventListener('unhandledrejection', handleWalletError);
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
     };
   }, []);
 
@@ -219,8 +221,10 @@ const WalletConnection: React.FC = () => {
           stableName: `${guestId}'s Stable`
         },
         assets: {
-          turfBalance: 25000 + Math.floor(Math.random() * 5000),
-          solBalance: 5.0,
+          turfBalance: 0,
+          guestCoins: 200000,
+          racingCredits: 25000,
+          solBalance: 0,
           horses: [],
           facilities: [
             {

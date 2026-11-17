@@ -81,6 +81,7 @@ const RaceTrack: React.FC<RaceTrackProps> = ({ race, horses }) => {
   const [commentaryIndex, setCommentaryIndex] = useState<number>(0);
   
   const raceEngineRef = useRef<RaceEngine | null>(null);
+  const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const bettingEngineRef = useRef<BettingEngine>(new BettingEngine());
   const audioRefs = useRef<{[key: string]: HTMLAudioElement | null}>({
     startBell: null,
@@ -164,29 +165,35 @@ const RaceTrack: React.FC<RaceTrackProps> = ({ race, horses }) => {
       return;
     }
 
+    // Guard: reject if countdown or race already active
+    if (countdown !== null || isRacing) return;
+
     if (horses.length === 0) return;
 
     // Start countdown
     setCountdown(3);
-    
+
     // Play crowd sound if audio is enabled
     if (audioEnabled && audioRefs.current.crowd) {
       audioRefs.current.crowd.play().catch(() => undefined);
     }
-    
-    const countdownInterval = setInterval(() => {
+
+    countdownIntervalRef.current = setInterval(() => {
       setCountdown(prev => {
         if (prev === null || prev <= 1) {
-          clearInterval(countdownInterval);
-          
+          if (countdownIntervalRef.current !== null) {
+            clearInterval(countdownIntervalRef.current);
+            countdownIntervalRef.current = null;
+          }
+
           // Actually start race when countdown reaches 0
           startRaceExecution();
-          
+
           // Play bell sound if audio is enabled
           if (audioEnabled && audioRefs.current.startBell) {
             audioRefs.current.startBell.play().catch(() => undefined);
           }
-          
+
           return null;
         }
         return prev - 1;
@@ -222,45 +229,84 @@ const RaceTrack: React.FC<RaceTrackProps> = ({ race, horses }) => {
           const progress = Math.min(100, (leader.distanceCovered / state.distance) * 100);
           setRaceProgress(progress);
         },
-        onFinish: (results: RaceResult[]) => {          
+        onFinish: (results: RaceResult[]) => {
           setRaceResults(results);
           setRaceFinished(true);
           setIsRacing(false);
-          
+
           // Stop race sounds
           if (audioEnabled) {
             if (audioRefs.current.hooves) audioRefs.current.hooves.pause();
-            
+
             // Play winner sound
             if (audioRefs.current.winner) {
               audioRefs.current.winner.play().catch(() => undefined);
             }
           }
-          
+
           // Check if this was a close finish (within 0.2 seconds)
-          const isPhotoFinish = results.length >= 2 && 
+          const isPhotoFinish = results.length >= 2 &&
             (results[1].time - results[0].time) < 0.2;
-            
+
           if (isPhotoFinish) {
             setPhotoFinish(true);
           }
-          
-          // Process betting results
-          const payouts = bettingEngineRef.current?.calculatePayouts(results) || [];
-          const totalWinnings = payouts
-            .filter(p => p.won)
-            .reduce((sum, p) => sum + p.payout, 0);
-          
+
+          // Settle actual placed bets from the store (never mock bets)
+          const storeState = useGameStore.getState();
+          const raceBets = storeState.activeBets.filter(b => b.raceId === race.id);
+          const winner = results[0];
+          const second = results[1];
+          const third = results[2];
+
+          let totalWinnings = 0;
+          let guestWinnings = 0;
+          const isGuest = storeState.player?.walletAddress?.startsWith('guest_');
+
+          raceBets.forEach(bet => {
+            let won = false;
+            switch (bet.type) {
+              case 'Win': won = bet.horseId === winner?.horseId; break;
+              case 'Place': won = bet.horseId === winner?.horseId || bet.horseId === second?.horseId; break;
+              case 'Show': won = bet.horseId === winner?.horseId || bet.horseId === second?.horseId || bet.horseId === third?.horseId; break;
+            }
+            if (won) {
+              if (isGuest) {
+                guestWinnings += bet.potentialPayout;
+              } else {
+                totalWinnings += bet.potentialPayout;
+              }
+            }
+          });
+
           if (totalWinnings > 0) {
             updatePlayerBalance(totalWinnings);
           }
-          
-          const winner = results[0];
+
+          if (guestWinnings > 0 && storeState.player) {
+            useGameStore.setState((state) => ({
+              player: state.player ? {
+                ...state.player,
+                assets: {
+                  ...state.player.assets,
+                  guestCoins: (state.player.assets.guestCoins || 0) + guestWinnings
+                }
+              } : null
+            }));
+          }
+
+          // Clear settled bets for this race
+          useGameStore.setState((state) => ({
+            activeBets: state.activeBets.filter(b => b.raceId !== race.id)
+          }));
+
+          const winAmount = isGuest ? guestWinnings : totalWinnings;
+          const currency = isGuest ? 'GC' : '$TURF';
           addNotification({
             id: Date.now().toString(),
             type: 'race_result',
             title: 'Race Finished!',
-            message: `${winner.name} won in ${winner.time.toFixed(2)}s! ${totalWinnings > 0 ? `You won ${totalWinnings.toLocaleString()} $TURF!` : ''}`,
+            message: `${winner.name} won in ${winner.time.toFixed(2)}s! ${winAmount > 0 ? `You won ${winAmount.toLocaleString()} ${currency}!` : ''}`,
             timestamp: Date.now(),
             read: false
           });
@@ -273,19 +319,34 @@ const RaceTrack: React.FC<RaceTrackProps> = ({ race, horses }) => {
 
   const pauseRace = () => {
     setIsRacing(false);
-    
+
+    // Stop the countdown interval if still active
+    if (countdownIntervalRef.current !== null) {
+      clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
+
+    // Stop the race engine so it cannot finish and issue a payout
+    if (raceEngineRef.current) {
+      raceEngineRef.current.stopRace();
+    }
+
     // Pause sounds
     if (audioEnabled && audioRefs.current.hooves) {
       audioRefs.current.hooves.pause();
     }
-    
-    if (raceEngineRef.current) {
-      // In a full implementation, we'd pause the race engine
-      // raceEngineRef.current.pauseRace();
-    }
   };
 
   const resetRace = () => {
+    // Stop countdown and engine before clearing refs
+    if (countdownIntervalRef.current !== null) {
+      clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
+    if (raceEngineRef.current) {
+      raceEngineRef.current.stopRace();
+    }
+
     setIsRacing(false);
     setRaceFinished(false);
     setRaceResults([]);

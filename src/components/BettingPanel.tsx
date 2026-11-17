@@ -99,7 +99,7 @@ const BettingPanel: React.FC<BettingPanelProps> = ({ race, horses }) => {
       
       // For guest mode, we'll handle betting separately
       if (isGuest) {
-        // Update guest player's coins directly
+        // Update guest player's coins directly and record active bet
         const updatedPlayer = {
           ...player,
           assets: {
@@ -107,9 +107,11 @@ const BettingPanel: React.FC<BettingPanelProps> = ({ race, horses }) => {
             guestCoins: (player.assets.guestCoins || 0) - betAmount
           }
         };
-        
-        // Update the player state
-        useGameStore.setState({ player: updatedPlayer });
+
+        useGameStore.setState((state) => ({
+          player: updatedPlayer,
+          activeBets: [...state.activeBets, bet]
+        }));
         
         // We'll still add the notification but handle it differently
         addNotification({

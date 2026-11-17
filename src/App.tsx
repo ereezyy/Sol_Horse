@@ -195,9 +195,10 @@ const generateMockRaces = (): Race[] => {
 };
 
 function App() {
-  const { 
-    player, 
-    horses, 
+  const {
+    player,
+    setPlayer,
+    horses,
     currentView,
     upcomingRaces,
     addHorse,
@@ -352,7 +353,10 @@ function App() {
               <div>
                 <h2 className="font-semibold text-yellow-800 mb-1">Playing as Guest</h2>
                 <p className="text-sm text-yellow-700 mb-2">Your progress won't be saved when you leave. Connect a wallet to keep your progress.</p>
-                <button className="text-sm px-4 py-2 bg-white border border-yellow-400 rounded-lg hover:bg-yellow-50 text-yellow-700 transition-colors">
+                <button
+                  className="text-sm px-4 py-2 bg-white border border-yellow-400 rounded-lg hover:bg-yellow-50 text-yellow-700 transition-colors"
+                  onClick={() => setPlayer(null)}
+                >
                   Connect Wallet Now
                 </button>
               </div>

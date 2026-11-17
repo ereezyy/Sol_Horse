@@ -390,10 +390,11 @@ export interface GameState {
   horses: HorseNFT[];
   activeRaces: Race[];
   upcomingRaces: Race[];
+  activeBets: Bet[];
   marketplaceListings: MarketplaceListing[];
   tournaments: Tournament[];
   guilds: Guild[];
-  
+
   // UI state
   selectedHorse: string | null;
   currentView: 'stable' | 'racing' | 'breeding' | 'marketplace' | 'profile' | 'guild' | 'training' | 'tournaments' | 'quests' | 'achievements' | 'events' | 'rewards' | 'analytics' | 'ai-analytics';

@@ -7,7 +7,7 @@ import { tournamentService } from '../services/tournamentService';
 
 interface GameStore extends GameState {
   // Actions
-  setPlayer: (player: Player) => void;
+  setPlayer: (player: Player | null) => void;
   addHorse: (horse: HorseNFT) => void;
   updateHorse: (horseId: string, updates: Partial<HorseNFT>) => void;
   selectHorse: (horseId: string | null) => void;
@@ -145,6 +145,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   horses: [],
   activeRaces: [],
   upcomingRaces: [],
+  activeBets: [],
   marketplaceListings: [],
   tournaments: [],
   guilds: [],
@@ -196,14 +197,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
   
   placeBet: async (bet) => {
     const { player } = get();
-    
+
     if (player && player.assets.turfBalance >= bet.amount) {
       // Place bet in database
       const success = await raceService.placeBet(bet);
-      
+
       if (success) {
-        // Update local state
+        // Update local state — deduct stake and record active bet
         set((state) => ({
+          activeBets: [...state.activeBets, bet],
           player: state.player ? {
             ...state.player,
             assets: {
@@ -420,7 +422,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
   fetchRaces: async () => set(async (state) => {
     try {
       const races = await raceService.getUpcomingRaces();
-      return { upcomingRaces: races };
+      // Only replace seeded races when the service returns real data
+      return races.length > 0 ? { upcomingRaces: races } : state;
     } catch (error) {
       console.error('Error fetching races, using mock data:', error);
       return state;
