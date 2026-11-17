@@ -82,6 +82,7 @@ const RaceTrack: React.FC<RaceTrackProps> = ({ race, horses }) => {
   
   const raceEngineRef = useRef<RaceEngine | null>(null);
   const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const executionTriggeredRef = useRef(false);
   const bettingEngineRef = useRef<BettingEngine>(new BettingEngine());
   const audioRefs = useRef<{[key: string]: HTMLAudioElement | null}>({
     startBell: null,
@@ -152,12 +153,41 @@ const RaceTrack: React.FC<RaceTrackProps> = ({ race, horses }) => {
     const handleFullscreenChange = () => {
       setFullscreen(!!document.fullscreenElement);
     };
-    
+
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     return () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
     };
   }, []);
+
+  // Stop engine on unmount to prevent background payouts after navigation
+  useEffect(() => {
+    return () => {
+      if (countdownIntervalRef.current !== null) {
+        clearInterval(countdownIntervalRef.current);
+        countdownIntervalRef.current = null;
+      }
+      raceEngineRef.current?.stopRace();
+    };
+  }, []);
+
+  // Trigger race execution when countdown sentinel reaches 0.
+  // Kept separate from the setState updater so it is never called twice in StrictMode.
+  useEffect(() => {
+    if (countdown !== 0 || executionTriggeredRef.current) return;
+    executionTriggeredRef.current = true;
+    if (countdownIntervalRef.current !== null) {
+      clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
+    if (audioEnabled && audioRefs.current.startBell) {
+      audioRefs.current.startBell.play().catch(() => undefined);
+    }
+    startRaceExecution();
+    setCountdown(null);
+  // only countdown drives this; execution is guarded by executionTriggeredRef
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [countdown]);
 
   const startRace = () => {
     if (raceFinished) {
@@ -170,6 +200,9 @@ const RaceTrack: React.FC<RaceTrackProps> = ({ race, horses }) => {
 
     if (horses.length === 0) return;
 
+    // Reset so the execution effect fires for this new race
+    executionTriggeredRef.current = false;
+
     // Start countdown
     setCountdown(3);
 
@@ -178,23 +211,12 @@ const RaceTrack: React.FC<RaceTrackProps> = ({ race, horses }) => {
       audioRefs.current.crowd.play().catch(() => undefined);
     }
 
+    // Pure updater — no side effects inside setState so StrictMode double-invocation is safe.
+    // The sentinel value 0 triggers the execution effect above.
     countdownIntervalRef.current = setInterval(() => {
       setCountdown(prev => {
         if (prev === null || prev <= 1) {
-          if (countdownIntervalRef.current !== null) {
-            clearInterval(countdownIntervalRef.current);
-            countdownIntervalRef.current = null;
-          }
-
-          // Actually start race when countdown reaches 0
-          startRaceExecution();
-
-          // Play bell sound if audio is enabled
-          if (audioEnabled && audioRefs.current.startBell) {
-            audioRefs.current.startBell.play().catch(() => undefined);
-          }
-
-          return null;
+          return 0; // sentinel — execution effect handles clearInterval + startRaceExecution
         }
         return prev - 1;
       });
@@ -269,6 +291,8 @@ const RaceTrack: React.FC<RaceTrackProps> = ({ race, horses }) => {
               case 'Win': won = bet.horseId === winner?.horseId; break;
               case 'Place': won = bet.horseId === winner?.horseId || bet.horseId === second?.horseId; break;
               case 'Show': won = bet.horseId === winner?.horseId || bet.horseId === second?.horseId || bet.horseId === third?.horseId; break;
+              case 'Exacta': won = bet.horseId === winner?.horseId && bet.secondHorseId === second?.horseId; break;
+              case 'Trifecta': won = bet.horseId === winner?.horseId && bet.secondHorseId === second?.horseId && bet.thirdHorseId === third?.horseId; break;
             }
             if (won) {
               if (isGuest) {

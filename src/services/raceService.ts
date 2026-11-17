@@ -1,5 +1,4 @@
 import { supabase } from './supabase';
-import { safeSupabaseOperation } from './supabase';
 import { Race, RaceEntry, RaceResult, Bet } from '../types';
 import playerService from './playerService';
 
@@ -8,44 +7,40 @@ export const raceService = {
    * Get all upcoming races
    */
   async getUpcomingRaces(): Promise<Race[]> {
-    return await safeSupabaseOperation(async () => {
-      if (!supabase) return [];
-      
+    if (!supabase) return [];
+    try {
       const now = new Date().toISOString();
-      
       const { data, error } = await supabase
         .from('races')
         .select('*')
         .gt('racetime', now)
         .order('racetime', { ascending: true });
-  
-      if (error) {
-        throw error;
-      }
-  
-      return data.map(race => this.mapDatabaseToRace(race));
-    }, []);
+      if (error) throw error;
+      return data.map((race: Record<string, unknown>) => this.mapDatabaseToRace(race));
+    } catch {
+      return [];
+    }
   },
   
-  mapDatabaseToRace(race): Race {
+  mapDatabaseToRace(race: Record<string, unknown>): Race {
     return {
-      id: race.id,
-      name: race.name,
-      type: race.type as any,
-      surface: race.surface as any,
-      distance: race.distance,
-      tier: race.tier as any,
-      conditions: race.conditionsdata as any,
-      requirements: race.requirementsdata as any,
-      entryFee: race.entryfee,
-      prizePool: race.prizepool,
+      id: race.id as string,
+      name: race.name as string,
+      type: race.type as Race['type'],
+      surface: race.surface as Race['surface'],
+      distance: race.distance as number,
+      tier: race.tier as Race['tier'],
+      conditions: race.conditionsdata as Race['conditions'],
+      requirements: race.requirementsdata as Race['requirements'],
+      entryFee: race.entryfee as number,
+      prizePool: race.prizepool as number,
       prizeDistribution: race.prizedistribution as number[],
       participants: race.participantsdata as RaceEntry[],
-      maxParticipants: race.maxparticipants,
-      registrationDeadline: new Date(race.registrationdeadline).getTime(),
-      raceTime: new Date(race.racetime).getTime(),
+      maxParticipants: race.maxparticipants as number,
+      registrationDeadline: new Date(race.registrationdeadline as string).getTime(),
+      raceTime: new Date(race.racetime as string).getTime(),
       results: race.resultsdata as RaceResult[] | undefined,
-      status: race.status as any
+      status: race.status as Race['status']
     };
   },
 
@@ -53,7 +48,7 @@ export const raceService = {
    * Add a new race
    */
   async addRace(race: Race): Promise<Race | null> {
-    const { data, error } = await supabase.from('races').insert({
+    const { error } = await supabase.from('races').insert({
       id: race.id,
       name: race.name,
       type: race.type,

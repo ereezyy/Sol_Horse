@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { HorseNFT, Player, Race, Bet, GameState, Tournament, TournamentEntry } from '../types';
+import { HorseNFT, Player, Race, Bet, GameState, Tournament, TournamentEntry, Notification } from '../types';
 import playerService from '../services/playerService';
 import horseService from '../services/horseService';
 import raceService from '../services/raceService';
@@ -15,7 +15,7 @@ interface GameStore extends GameState {
   addRace: (race: Race) => void;
   placeBet: (bet: Bet) => void;
   updatePlayerBalance: (amount: number) => void;
-  addNotification: (notification: any) => void;
+  addNotification: (notification: Notification) => void;
   markNotificationRead: (notificationId: string) => void;
   performDailyCheckIn: () => boolean;
   getCheckInStatus: () => { canClaim: boolean; timeUntilNext: number; streak: number; };
@@ -199,22 +199,19 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const { player } = get();
 
     if (player && player.assets.turfBalance >= bet.amount) {
-      // Place bet in database
-      const success = await raceService.placeBet(bet);
-
-      if (success) {
-        // Update local state — deduct stake and record active bet
-        set((state) => ({
-          activeBets: [...state.activeBets, bet],
-          player: state.player ? {
-            ...state.player,
-            assets: {
-              ...state.player.assets,
-              turfBalance: state.player.assets.turfBalance - bet.amount
-            }
-          } : null
-        }));
-      }
+      // Apply locally first so the bet is always deducted and tracked
+      set((state) => ({
+        activeBets: [...state.activeBets, bet],
+        player: state.player ? {
+          ...state.player,
+          assets: {
+            ...state.player.assets,
+            turfBalance: state.player.assets.turfBalance - bet.amount
+          }
+        } : null
+      }));
+      // Best-effort DB sync — no-op in local/demo mode
+      raceService.placeBet(bet).catch(() => undefined);
     }
   },
   
@@ -369,7 +366,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   // Data fetching actions
-  fetchPlayerData: async (walletAddress: string) => set(async (state) => {
+  fetchPlayerData: async (walletAddress: string) => set(async () => {
     const player = await playerService.getPlayerByWallet(walletAddress);
     
     // In demo mode or if no player exists, create a mock player

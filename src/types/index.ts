@@ -159,6 +159,8 @@ export interface Bet {
   playerId: string;
   raceId: string;
   horseId: string;
+  secondHorseId?: string; // second pick for Exacta/Trifecta
+  thirdHorseId?: string;  // third pick for Trifecta
   type: 'Win' | 'Place' | 'Show' | 'Exacta' | 'Trifecta';
   amount: number; // in $TURF
   odds: number;

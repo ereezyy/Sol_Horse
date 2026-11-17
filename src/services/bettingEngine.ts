@@ -7,17 +7,29 @@ export interface BetOdds {
   totalBetAmount: number;
 }
 
-export interface BetResult {
-  bet: any;
-  won: boolean;
-  payout: number;
-}
-
-interface PlacedBet {
+export interface PlacedBet {
   id: string;
   horseId: string;
   type: 'Win' | 'Place' | 'Show';
   amount: number;
+}
+
+export interface BetResult {
+  bet: PlacedBet;
+  won: boolean;
+  payout: number;
+}
+
+interface HorseForOdds {
+  id: string;
+  genetics: { baseSpeed: number; stamina: number; agility: number; intelligence: number };
+  stats: { races: number; wins: number };
+}
+
+interface RaceResultForPayout {
+  horseId: string;
+  genetics?: { baseSpeed: number; stamina: number; agility: number; intelligence: number };
+  stats?: { races: number; wins: number };
 }
 
 export class BettingEngine {
@@ -30,16 +42,16 @@ export class BettingEngine {
     this.resetBets();
   }
 
-  public calculateOdds(horses: any[]): BetOdds[] {
+  public calculateOdds(horses: HorseForOdds[]): BetOdds[] {
     return horses.map(horse => {
       const horseId = horse.id;
       const bets = this.horseBets.get(horseId) || { win: 0, place: 0, show: 0 };
-      
+
       // Calculate win odds based on performance and betting volume
       const performanceScore = this.calculatePerformanceScore(horse);
       const bettingVolume = bets.win;
       const totalWinPool = Array.from(this.horseBets.values()).reduce((sum, b) => sum + b.win, 0);
-      
+
       let winOdds: number;
       if (totalWinPool === 0) {
         // Base odds on performance only
@@ -61,10 +73,10 @@ export class BettingEngine {
     });
   }
 
-  private calculatePerformanceScore(horse: any): number {
+  private calculatePerformanceScore(horse: HorseForOdds): number {
     const genetics = horse.genetics;
     const stats = horse.stats;
-    
+
     // Genetic potential (0-1)
     const geneticScore = (
       genetics.baseSpeed * 0.4 +
@@ -104,7 +116,7 @@ export class BettingEngine {
     return true;
   }
 
-  public calculatePayouts(raceResults: any[]): BetResult[] {
+  public calculatePayouts(raceResults: RaceResultForPayout[]): BetResult[] {
     // Only settle actual placed bets — never generate mock bets
     if (this.placedBets.length === 0) return [];
 
